@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>THE ARCHIVE — Enter if you dare</title>
+  <meta name="description" content="A cryptographic treasure hunt. 25 stages. One archive.">
+  <!-- SECURITY: No answers, flags, hints, or stage data are embedded in this file -->
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       SCAN LINES OVERLAY
+  ═══════════════════════════════════════ -->
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <canvas id="matrix-canvas" aria-hidden="true"></canvas>
+
+  <!-- ═══════════════════════════════════════
+       LANDING PAGE
+  ═══════════════════════════════════════ -->
+  <section id="pg-landing" class="page active" role="main">
+    <div class="landing-inner">
+      <div class="glitch-wrapper">
+        <h1 class="title-main glitch" data-text="THE ARCHIVE">THE ARCHIVE</h1>
+      </div>
+      <div class="title-sub">
+        <span class="bracket">[</span>
+        <span class="typewriter" id="landing-tagline"></span>
+        <span class="cursor-blink">_</span>
+        <span class="bracket">]</span>
+      </div>
+
+      <div class="landing-stats">
+        <div class="stat-item"><span class="stat-val">25</span><span class="stat-lbl">STAGES</span></div>
+        <div class="stat-div">//</div>
+        <div class="stat-item"><span class="stat-val">125</span><span class="stat-lbl">CLUES</span></div>
+        <div class="stat-div">//</div>
+        <div class="stat-item"><span class="stat-val">5</span><span class="stat-lbl">TIERS</span></div>
+      </div>
+
+      <div class="tier-grid">
+        <div class="tier-badge" data-tier="1">I · INITIATION</div>
+        <div class="tier-badge" data-tier="2">II · THE STACKS</div>
+        <div class="tier-badge" data-tier="3">III · RESTRICTED</div>
+        <div class="tier-badge" data-tier="4">IV · DEEP ARCHIVE</div>
+        <div class="tier-badge" data-tier="5">V · THE VAULT</div>
+      </div>
+
+      <button class="btn-enter" id="btn-enter-archive">
+        <span class="btn-text">ENTER THE ARCHIVE</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+      <button class="btn-secondary" id="btn-view-lb-landing">VIEW LEADERBOARD</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       LOGIN PAGE
+  ═══════════════════════════════════════ -->
+  <section id="pg-login" class="page" role="main">
+    <div class="login-inner">
+      <div class="login-header">
+        <div class="login-icon">◈</div>
+        <h2 class="login-title">IDENTIFY YOURSELF</h2>
+        <p class="login-sub">Enter your team designation to begin</p>
+      </div>
+
+      <div class="input-group">
+        <label for="inp-team" class="inp-label">TEAM / AGENT DESIGNATION</label>
+        <div class="inp-wrapper">
+          <span class="inp-prefix">&gt;</span>
+          <input
+            type="text"
+            id="inp-team"
+            class="inp-team"
+            placeholder="e.g. TEAM_ALPHA or HACKER_42"
+            maxlength="50"
+            autocomplete="off"
+            spellcheck="false"
+            autocorrect="off"
+            autocapitalize="off"
+          >
+        </div>
+        <div class="inp-error" id="login-error" aria-live="polite"></div>
+      </div>
+
+      <div class="login-rules">
+        <div class="rule-item"><span class="rule-dot">◆</span> 2–50 characters allowed</div>
+        <div class="rule-item"><span class="rule-dot">◆</span> Letters, numbers, spaces, _ - . permitted</div>
+        <div class="rule-item"><span class="rule-dot">◆</span> One hint available per stage</div>
+        <div class="rule-item"><span class="rule-dot">◆</span> Timer starts when you enter</div>
+      </div>
+
+      <button class="btn-enter" id="btn-start-game">
+        <span class="btn-text" id="btn-start-text">INITIALISE SESSION</span>
+        <span class="btn-arrow" id="btn-start-spinner">→</span>
+      </button>
+
+      <button class="btn-back" id="btn-back-landing">← BACK</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       GAME PAGE
+  ═══════════════════════════════════════ -->
+  <section id="pg-game" class="page" role="main">
+
+    <!-- Top header bar -->
+    <header class="game-header">
+      <div class="hdr-left">
+        <span class="hdr-logo">◈ THE ARCHIVE</span>
+        <span class="hdr-sep">//</span>
+        <span class="hdr-team" id="hdr-team">TEAM</span>
+      </div>
+      <div class="hdr-center">
+        <span class="hdr-stage" id="hdr-stage-label">STAGE 1 / 25</span>
+      </div>
+      <div class="hdr-right">
+        <div class="timer-box">
+          <span class="timer-icon">⧗</span>
+          <span class="timer-val" id="game-timer">00:00:00</span>
+        </div>
+        <button class="btn-icon" id="btn-open-lb" title="Leaderboard" aria-label="Open leaderboard">⊞</button>
+      </div>
+    </header>
+
+    <!-- Progress track -->
+    <div class="progress-track" role="progressbar" aria-label="Stage progress">
+      <div class="stage-map" id="stage-map"></div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Main game area -->
+    <div class="game-body">
+
+      <!-- Left: Stage info + clue steps -->
+      <aside class="game-sidebar" aria-label="Stage information">
+        <div class="sidebar-section">
+          <div class="sb-tier" id="sb-tier">TIER I</div>
+          <div class="sb-stage-name" id="sb-stage-name">Stage Name</div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sb-label">CLUE PROGRESS</div>
+          <div class="clue-steps" id="clue-steps"></div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sb-label">SESSION STATS</div>
+          <div class="stats-grid">
+            <div class="stat-cell">
+              <span class="sc-val" id="st-stages">0</span>
+              <span class="sc-lbl">cleared</span>
+            </div>
+            <div class="stat-cell">
+              <span class="sc-val" id="st-wrong">0</span>
+              <span class="sc-lbl">wrong</span>
+            </div>
+            <div class="stat-cell">
+              <span class="sc-val" id="st-hints">0</span>
+              <span class="sc-lbl">hints</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sb-label">ARCHIVE MAP</div>
+          <div class="mini-map" id="mini-map"></div>
+        </div>
+      </aside>
+
+      <!-- Center: Terminal clue console -->
+      <main class="game-main" aria-label="Clue console">
+        <div class="terminal-window">
+          <div class="terminal-bar">
+            <span class="term-dot red"></span>
+            <span class="term-dot yellow"></span>
+            <span class="term-dot green"></span>
+            <span class="term-title">archive_terminal — clue_console</span>
+          </div>
+
+          <div class="terminal-body" id="terminal-body">
+            <div class="term-log" id="term-log" aria-live="polite" aria-atomic="false"></div>
+          </div>
+
+          <!-- Hint area -->
+          <div class="hint-area" id="hint-area">
+            <div class="hint-content" id="hint-content"></div>
+          </div>
+
+          <!-- Input row -->
+          <div class="terminal-input-row">
+            <span class="term-prompt">archive@vault:~$</span>
+            <input
+              type="text"
+              id="inp-answer"
+              class="term-input"
+              placeholder="type your answer here..."
+              autocomplete="off"
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="off"
+              aria-label="Answer input"
+            >
+            <button class="btn-submit" id="btn-submit" aria-label="Submit answer">
+              <span>SUBMIT</span>
+              <span class="submit-key">[ENTER]</span>
+            </button>
+          </div>
+
+          <!-- Controls bar -->
+          <div class="controls-bar">
+            <button class="btn-hint-req" id="btn-hint" aria-label="Request hint">
+              <span class="hint-icon">💡</span>
+              <span>HINT</span>
+              <span class="hint-cost" id="hint-cost-label">(1 per stage)</span>
+            </button>
+            <div class="cooldown-bar" id="cooldown-bar" aria-hidden="true">
+              <div class="cooldown-fill" id="cooldown-fill"></div>
+            </div>
+            <div class="feedback-msg" id="feedback-msg" aria-live="assertive"></div>
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       FLAG REVEAL MODAL
+  ═══════════════════════════════════════ -->
+  <div id="modal-flag" class="modal hidden" role="dialog" aria-modal="true" aria-label="Stage cleared">
+    <div class="modal-box flag-modal">
+      <div class="flag-header">
+        <div class="flag-icon-big">⚑</div>
+        <div class="flag-stage-label" id="flag-stage-label">STAGE 1 CLEARED</div>
+      </div>
+      <div class="flag-value" id="flag-value">FLAG{...}</div>
+      <div class="flag-sub" id="flag-sub">Stage cleared in 00:00</div>
+      <div class="flag-particles" id="flag-particles" aria-hidden="true"></div>
+      <button class="btn-enter" id="btn-next-stage">
+        <span class="btn-text" id="btn-next-text">ADVANCE TO STAGE 2 →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       VICTORY SCREEN
+  ═══════════════════════════════════════ -->
+  <section id="pg-victory" class="page" role="main">
+    <div class="victory-inner">
+      <div class="vic-glitch-wrap">
+        <h1 class="vic-title glitch" data-text="ARCHIVE COMPLETE">ARCHIVE COMPLETE</h1>
+      </div>
+      <div class="vic-glyph">◈</div>
+      <p class="vic-sub">You have breached the final seal.</p>
+
+      <div class="vic-stats-grid">
+        <div class="vic-stat">
+          <span class="vs-val" id="vic-team">TEAM</span>
+          <span class="vs-lbl">AGENT</span>
+        </div>
+        <div class="vic-stat">
+          <span class="vs-val" id="vic-time">--:--:--</span>
+          <span class="vs-lbl">TOTAL TIME</span>
+        </div>
+        <div class="vic-stat">
+          <span class="vs-val" id="vic-stages">25/25</span>
+          <span class="vs-lbl">STAGES</span>
+        </div>
+        <div class="vic-stat">
+          <span class="vs-val" id="vic-hints">0</span>
+          <span class="vs-lbl">HINTS USED</span>
+        </div>
+      </div>
+
+      <div class="vic-flags" id="vic-flags"></div>
+
+      <button class="btn-enter" id="btn-vic-lb">VIEW LEADERBOARD →</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       LEADERBOARD MODAL
+  ═══════════════════════════════════════ -->
+  <div id="modal-lb" class="modal hidden" role="dialog" aria-modal="true" aria-label="Leaderboard">
+    <div class="modal-box lb-modal">
+      <div class="modal-header">
+        <h2 class="modal-title">⊞ LEADERBOARD</h2>
+        <button class="btn-close" id="btn-close-lb" aria-label="Close leaderboard">✕</button>
+      </div>
+      <div class="lb-meta" id="lb-meta">Loading...</div>
+      <div class="lb-table-wrap">
+        <table class="lb-table" aria-label="Leaderboard rankings">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>TEAM</th>
+              <th>STAGES</th>
+              <th>TIME</th>
+              <th>HINTS</th>
+            </tr>
+          </thead>
+          <tbody id="lb-body"></tbody>
+        </table>
+      </div>
+      <button class="btn-close-bottom" id="btn-close-lb-bottom">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       ERROR TOAST
+  ═══════════════════════════════════════ -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="assertive"></div>
+
+  <!-- ═══════════════════════════════════════
+       LOADING OVERLAY
+  ═══════════════════════════════════════ -->
+  <div id="loading-overlay" class="loading-overlay hidden" aria-live="polite">
+    <div class="loader-inner">
+      <div class="loader-ring"></div>
+      <div class="loader-text" id="loader-text">CONNECTING...</div>
+    </div>
+  </div>
+
+  <!-- Scripts — loaded last, no game data in HTML -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

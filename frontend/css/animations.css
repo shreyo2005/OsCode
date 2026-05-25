@@ -1,0 +1,219 @@
+/* ═══════════════════════════════════════════════════
+   THE ARCHIVE — animations.css
+   Glitch, transitions, flag reveal, stage clear FX
+   ═══════════════════════════════════════════════════ */
+
+/* ── GLITCH TEXT ─────────────────────────────────── */
+.glitch {
+  position: relative;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: transparent;
+}
+.glitch::before {
+  color: #ff00ea;
+  animation: glitch-1 3.5s infinite;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  text-shadow: none;
+}
+.glitch::after {
+  color: #00d4ff;
+  animation: glitch-2 3.5s infinite;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  text-shadow: none;
+}
+
+@keyframes glitch-1 {
+  0%, 85%, 100%  { transform: translate(0, 0); opacity: 0; }
+  86%            { transform: translate(-3px, 1px); opacity: 0.8; }
+  87%            { transform: translate(3px, -1px); opacity: 0.8; }
+  88%            { transform: translate(-2px, 2px); opacity: 0.8; }
+  89%            { transform: translate(2px, -2px); opacity: 0.8; }
+  90%            { transform: translate(0, 0); opacity: 0; }
+}
+@keyframes glitch-2 {
+  0%, 88%, 100%  { transform: translate(0, 0); opacity: 0; }
+  89%            { transform: translate(4px, 2px); opacity: 0.7; }
+  90%            { transform: translate(-4px, -2px); opacity: 0.7; }
+  91%            { transform: translate(2px, 0); opacity: 0.7; }
+  92%            { transform: translate(0, 0); opacity: 0; }
+}
+
+/* Intense glitch for flag reveal */
+.glitch-intense {
+  animation: glitch-intense 0.4s ease !important;
+}
+@keyframes glitch-intense {
+  0%   { transform: translate(0,0) skewX(0deg); }
+  10%  { transform: translate(-5px, 2px) skewX(3deg); color: #ff00ea; }
+  20%  { transform: translate(5px, -2px) skewX(-3deg); color: #00d4ff; }
+  30%  { transform: translate(-3px, 0) skewX(1deg); }
+  40%  { transform: translate(3px, 2px) skewX(-1deg); }
+  50%  { transform: translate(0, 0) skewX(0deg); }
+  100% { transform: translate(0, 0) skewX(0deg); }
+}
+
+/* ── PAGE TRANSITIONS ────────────────────────────── */
+.page-enter {
+  animation: page-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.page-exit {
+  animation: page-out 0.25s ease forwards;
+}
+@keyframes page-out {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+/* ── STAGE CLEAR ANIMATION ───────────────────────── */
+.stage-clear-flash {
+  animation: clear-flash 0.6s ease;
+}
+@keyframes clear-flash {
+  0%   { background: rgba(255,183,0,0); }
+  30%  { background: rgba(255,183,0,0.12); }
+  100% { background: rgba(255,183,0,0); }
+}
+
+/* ── FLAG MODAL ENTRANCE ─────────────────────────── */
+.flag-modal-enter {
+  animation: flag-modal-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes flag-modal-in {
+  from { opacity: 0; transform: scale(0.85) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── FLAG VALUE SCAN ─────────────────────────────── */
+.flag-scan {
+  animation: flag-scan 0.8s ease;
+}
+@keyframes flag-scan {
+  0%   { letter-spacing: 0.5em; opacity: 0; filter: blur(4px); }
+  50%  { filter: blur(1px); }
+  100% { letter-spacing: 0.15em; opacity: 1; filter: blur(0); }
+}
+
+/* ── WRONG ANSWER SHAKE ──────────────────────────── */
+.shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes shake {
+  10%, 90%  { transform: translateX(-2px); }
+  20%, 80%  { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-6px); }
+  40%, 60%  { transform: translateX(6px); }
+}
+
+/* ── CORRECT PULSE ───────────────────────────────── */
+.correct-pulse {
+  animation: correct-pulse 0.5s ease;
+}
+@keyframes correct-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); }
+  50%  { box-shadow: 0 0 0 12px rgba(0, 255, 136, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+
+/* ── CLUE APPEAR ─────────────────────────────────── */
+.clue-appear {
+  animation: clue-appear 0.35s ease;
+}
+@keyframes clue-appear {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── NUMBER TICK UP ──────────────────────────────── */
+.tick-up {
+  animation: tick-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tick-up {
+  from { transform: translateY(6px) scale(0.9); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* ── PARTICLE BURST (flag clear) ─────────────────── */
+.particle {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.particle.p-amber {
+  background: #ffb700;
+  box-shadow: 0 0 6px #ffb700;
+  animation: particle-burst var(--dur, 0.8s) ease-out forwards;
+}
+.particle.p-cyan {
+  background: #00d4ff;
+  box-shadow: 0 0 6px #00d4ff;
+  animation: particle-burst var(--dur, 0.8s) ease-out forwards;
+}
+.particle.p-green {
+  background: #00ff88;
+  box-shadow: 0 0 6px #00ff88;
+  animation: particle-burst var(--dur, 0.8s) ease-out forwards;
+}
+@keyframes particle-burst {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx,40px), var(--dy,-60px)) scale(0); opacity: 0; }
+}
+
+/* ── SCAN LINE SWEEP ─────────────────────────────── */
+.scan-sweep::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.6), transparent);
+  animation: scan-down 1.5s ease-in-out infinite;
+  pointer-events: none; z-index: 10;
+}
+@keyframes scan-down {
+  from { top: 0%; }
+  to   { top: 100%; }
+}
+
+/* ── VICTORY GLYPH SPIN ──────────────────────────── */
+.vic-glyph {
+  animation: glyph-spin 6s linear infinite;
+  display: inline-block;
+}
+@keyframes glyph-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(90deg) scale(1.1); }
+  50%  { transform: rotate(180deg) scale(1); }
+  75%  { transform: rotate(270deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ── HOVER GLOW BORDER ───────────────────────────── */
+.glow-border {
+  position: relative;
+}
+.glow-border::after {
+  content: '';
+  position: absolute; inset: -1px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple), var(--amber));
+  z-index: -1; opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+}
+.glow-border:hover::after { opacity: 0.4; }
+
+/* ── TERMINAL BOOT SEQUENCE ──────────────────────── */
+.boot-line {
+  opacity: 0;
+  animation: boot-appear 0.15s ease forwards;
+}
+@keyframes boot-appear {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: none; }
+}

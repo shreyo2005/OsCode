@@ -1,0 +1,10 @@
+{
+  "name": "the-archive-frontend",
+  "version": "1.0.0",
+  "description": "The Archive — Frontend Static Files",
+  "scripts": {
+    "serve": "npx serve . -p 3000 --no-clipboard",
+    "dev": "npx live-server --port=3000 --no-browser"
+  },
+  "notes": "No build step required. Pure HTML/CSS/JS. Serve with any static file server."
+}

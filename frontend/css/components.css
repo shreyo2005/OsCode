@@ -1,0 +1,137 @@
+/* ═══════════════════════════════════════════════════
+   THE ARCHIVE — components.css
+   Additional component styles
+   ═══════════════════════════════════════════════════ */
+
+/* ── TIER COLOR CODING ───────────────────────────── */
+.tier-1 { --tier-color: #00d4ff; }  /* cyan   - Initiation */
+.tier-2 { --tier-color: #00ff88; }  /* green  - The Stacks */
+.tier-3 { --tier-color: #ffb700; }  /* amber  - Restricted */
+.tier-4 { --tier-color: #ff7c40; }  /* orange - Deep Archive */
+.tier-5 { --tier-color: #b44dff; }  /* purple - The Vault */
+
+/* ── STAGE MAP TIER COLORING ─────────────────────── */
+.smap-dot[data-tier="1"].done { background: rgba(0,212,255,0.3); border-color: rgba(0,212,255,0.6); }
+.smap-dot[data-tier="2"].done { background: rgba(0,255,136,0.25); border-color: rgba(0,255,136,0.5); }
+.smap-dot[data-tier="3"].done { background: rgba(255,183,0,0.25); border-color: rgba(255,183,0,0.5); }
+.smap-dot[data-tier="4"].done { background: rgba(255,124,64,0.25); border-color: rgba(255,124,64,0.5); }
+.smap-dot[data-tier="5"].done { background: rgba(180,77,255,0.25); border-color: rgba(180,77,255,0.5); }
+
+/* ── LEADERBOARD RANK COLORS ─────────────────────── */
+.lb-table .rank-1 td { background: rgba(255,183,0,0.05); }
+.lb-table .rank-2 td { background: rgba(192,192,192,0.04); }
+.lb-table .rank-3 td { background: rgba(205,127,50,0.04); }
+
+/* ── COMPLETED TEAM IN LB ────────────────────────── */
+.lb-table .completed-row .td-stages { color: #00ff88; }
+.lb-table .completed-row .td-stages::after {
+  content: ' ✓';
+  font-size: 0.65rem;
+  color: #00ff88;
+}
+
+/* ── CLUE DIFFICULTY BADGES ──────────────────────── */
+.clue-difficulty {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.15em;
+  padding: 2px 7px; margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.diff-easy     { color: #00ff88; border: 1px solid rgba(0,255,136,0.3); background: rgba(0,255,136,0.04); }
+.diff-medium   { color: #ffb700; border: 1px solid rgba(255,183,0,0.3); background: rgba(255,183,0,0.04); }
+.diff-hard     { color: #ff7c40; border: 1px solid rgba(255,124,64,0.3); background: rgba(255,124,64,0.04); }
+.diff-extreme  { color: #b44dff; border: 1px solid rgba(180,77,255,0.3); background: rgba(180,77,255,0.04); }
+
+/* ── STAGE COMPLETE BADGE (in mini map tooltip) ──── */
+[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 120%; left: 50%; transform: translateX(-50%);
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 0.05em;
+  padding: 4px 8px; white-space: nowrap;
+  z-index: 100; pointer-events: none;
+}
+
+/* ── SCROLLBAR STYLED ────────────────────────────── */
+.lb-table-wrap::-webkit-scrollbar { width: 4px; }
+.lb-table-wrap::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.2); }
+.terminal-body::-webkit-scrollbar { width: 4px; }
+.terminal-body::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); }
+.game-sidebar::-webkit-scrollbar { width: 3px; }
+.game-sidebar::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.1); }
+
+/* ── INPUT FOCUS RING ────────────────────────────── */
+.term-input:focus {
+  outline: none;
+}
+.terminal-input-row:focus-within {
+  border-top-color: rgba(0,212,255,0.4);
+  box-shadow: 0 -2px 20px rgba(0,212,255,0.08);
+}
+
+/* ── HINT USED STATE ─────────────────────────────── */
+.btn-hint-req.used {
+  border-color: rgba(255,183,0,0.2);
+  color: rgba(255,183,0,0.4);
+}
+.btn-hint-req.used:hover {
+  border-color: rgba(255,183,0,0.2);
+  color: rgba(255,183,0,0.4);
+}
+
+/* ── WRONG ANSWER BORDER FLASH ───────────────────── */
+.terminal-window.wrong-flash {
+  border-color: rgba(255,51,85,0.5);
+  box-shadow: 0 0 30px rgba(255,51,85,0.15);
+  transition: border-color 0.1s, box-shadow 0.1s;
+}
+
+/* ── CORRECT ANSWER BORDER FLASH ─────────────────── */
+.terminal-window.correct-flash {
+  border-color: rgba(0,255,136,0.5);
+  box-shadow: 0 0 30px rgba(0,255,136,0.15);
+  transition: border-color 0.1s, box-shadow 0.1s;
+}
+
+/* ── NO ENTRIES STATE ────────────────────────────── */
+.lb-empty {
+  padding: 40px 24px; text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem; color: rgba(106,128,153,0.6);
+  letter-spacing: 0.1em;
+}
+
+/* ── CONNECTION ERROR STATE ──────────────────────── */
+.conn-error {
+  background: rgba(255,51,85,0.05);
+  border: 1px solid rgba(255,51,85,0.2);
+  padding: 16px 20px; margin: 16px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem; color: #ff3355;
+  letter-spacing: 0.05em; line-height: 1.7;
+}
+
+/* ── RESPONSIVE GAME LAYOUT ──────────────────────── */
+@media (max-width: 900px) {
+  .game-sidebar { width: 180px; }
+}
+@media (max-width: 768px) {
+  #pg-game .game-body { flex-direction: column; }
+  .game-sidebar { width: 100%; max-height: 120px; flex-direction: row; flex-wrap: wrap; }
+  .sidebar-section { padding: 8px 12px; border-right: 1px solid var(--border); border-bottom: none; }
+  .game-main { padding: 12px; }
+}
+@media (max-width: 520px) {
+  .terminal-input-row { flex-wrap: wrap; }
+  .term-prompt { width: 100%; border-bottom: 1px solid var(--border); padding: 6px 14px; }
+  .btn-submit { width: 100%; justify-content: center; border-left: none; border-top: 1px solid var(--border); }
+}
+
+/* ── PRINT STYLES ────────────────────────────────── */
+@media print {
+  .scanlines, .noise-overlay, #matrix-canvas { display: none; }
+}
