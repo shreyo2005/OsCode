@@ -20,7 +20,7 @@ window.ARCHIVE_CONFIG = {
 
   // Session storage key
   SESSION_KEY: 'archive_session_id',
-  TEAM_KEY: 'archive_team_name',
+  TEAM_KEY:    'archive_team_name',
 
   // Max wrong answer log lines shown in terminal
   MAX_LOG_LINES: 80,
