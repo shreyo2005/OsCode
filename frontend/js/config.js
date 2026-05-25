@@ -6,7 +6,8 @@
 
 window.ARCHIVE_CONFIG = {
   // Change this to your deployed backend URL in production
-  API_BASE: 'http://localhost:3001/api',
+  // API_BASE: 'http://localhost:3001/api',
+  API_BASE: 'https://oscode-production.up.railway.app/api',
 
   // Polling interval for leaderboard refresh (ms)
   LB_POLL_INTERVAL: 30000,
@@ -20,7 +21,7 @@ window.ARCHIVE_CONFIG = {
 
   // Session storage key
   SESSION_KEY: 'archive_session_id',
-  TEAM_KEY:    'archive_team_name',
+  TEAM_KEY: 'archive_team_name',
 
   // Max wrong answer log lines shown in terminal
   MAX_LOG_LINES: 80,
